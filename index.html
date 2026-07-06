@@ -30,8 +30,12 @@
   .balance-card { background: var(--bg2); padding: 20px 16px 16px; text-align: center; border-bottom: 0.5px solid var(--border); }
   .bal-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
   .bal-amount { font-size: 36px; font-weight: 700; color: var(--text); letter-spacing: -1px; }
-  .bal-change { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; background: var(--green-dim); border: 0.5px solid rgba(34,197,94,0.2); border-radius: 20px; padding: 3px 10px; }
-  .bal-change span { font-size: 12px; color: var(--green); font-weight: 500; }
+  .bal-change { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; border-radius: 20px; padding: 3px 10px; border: 0.5px solid; }
+  .bal-change span { font-size: 12px; font-weight: 500; }
+  .bal-change.pos { background: var(--green-dim); border-color: rgba(34,197,94,0.2); }
+  .bal-change.pos span { color: var(--green); }
+  .bal-change.neg { background: var(--red-dim); border-color: rgba(239,68,68,0.2); }
+  .bal-change.neg span { color: var(--red); }
   .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--bg2); border-bottom: 0.5px solid var(--border); }
   .stat-item { padding: 12px 8px; text-align: center; border-right: 0.5px solid var(--border); }
   .stat-item:last-child { border-right: none; }
@@ -51,7 +55,9 @@
   .badge.long { background: var(--green-dim); color: var(--green); border: 0.5px solid rgba(34,197,94,0.2); }
   .badge.short { background: var(--red-dim); color: var(--red); border: 0.5px solid rgba(239,68,68,0.2); }
   .trade-detail { font-size: 11px; color: var(--text3); margin-top: 3px; }
-  .trade-pnl { font-size: 14px; font-weight: 600; color: var(--green); text-align: right; }
+  .trade-pnl { font-size: 14px; font-weight: 600; text-align: right; }
+  .trade-pnl.pos { color: var(--green); }
+  .trade-pnl.neg { color: var(--red); }
   .trade-pct { font-size: 11px; color: var(--text3); margin-top: 2px; text-align: right; }
   .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .ctrl-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; }
@@ -84,6 +90,7 @@
   .pill { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
   .pill.active { background: var(--green-dim); color: var(--green); border: 0.5px solid rgba(34,197,94,0.2); }
   .pill.paused { background: rgba(234,179,8,0.12); color: #eab308; border: 0.5px solid rgba(234,179,8,0.2); }
+  .pill.inactive { background: var(--red-dim); color: var(--red); border: 0.5px solid rgba(239,68,68,0.2); }
   .input-row { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; }
   .input-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
   .amount-display { display: flex; align-items: baseline; gap: 6px; }
@@ -117,6 +124,15 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .screen-content { animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);} }
+  .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 12px; }
+  .loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text3); }
+  .error-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 10px; padding: 24px; text-align: center; }
+  .error-icon { font-size: 36px; }
+  .error-msg { font-size: 14px; color: var(--text2); line-height: 1.5; }
+  .error-sub { font-size: 12px; color: var(--text3); }
+  .retry-btn { margin-top: 8px; padding: 10px 24px; border-radius: var(--radius); border: 0.5px solid var(--orange); background: var(--orange-dim); color: var(--orange); font-size: 13px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -126,299 +142,371 @@
     <div class="logo">MR</div>
     <div>
       <div class="topbar-title">MRRIK Trading AI</div>
-      <div class="topbar-sub" id="topbar-sub">Auto-trading active</div>
+      <div class="topbar-sub" id="topbar-sub">Loading...</div>
     </div>
   </div>
-  <div class="live-dot"></div>
+  <div class="live-dot" id="live-dot" style="background:var(--text3)"></div>
 </div>
 
 <div class="screen" id="screen">
-  <div class="screen-content" id="screen-content"></div>
+  <div class="screen-content" id="screen-content">
+    <div class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Connecting to MRRIK...</div>
+    </div>
+  </div>
 </div>
 
 <div class="bottom-nav">
   <div class="nav-item active" onclick="goTo('home')" id="nav-home">
-    <div class="nav-icon">🏠</div>
-    <div class="nav-label">Home</div>
+    <div class="nav-icon">🏠</div><div class="nav-label">Home</div>
   </div>
   <div class="nav-item" onclick="goTo('trades')" id="nav-trades">
-    <div class="nav-icon">📊</div>
-    <div class="nav-label">Trades</div>
+    <div class="nav-icon">📊</div><div class="nav-label">Trades</div>
   </div>
   <div class="nav-item" onclick="goTo('demo')" id="nav-demo">
-    <div class="nav-icon">🎮</div>
-    <div class="nav-label">Demo</div>
+    <div class="nav-icon">🎮</div><div class="nav-label">Demo</div>
   </div>
   <div class="nav-item" onclick="goTo('settings')" id="nav-settings">
-    <div class="nav-icon">⚙️</div>
-    <div class="nav-label">Settings</div>
+    <div class="nav-icon">⚙️</div><div class="nav-label">Settings</div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Telegram Mini App init ──────────────────────────
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#111111'); tg.setBackgroundColor('#0d0d0d'); }
 
-// ── Live API Configuration ──────────────────────────────────
+// ── API Config ──────────────────────────────────────
 const API_BASE = 'https://mrrik.duckdns.org';
-const USER_ID  = tg && tg.initDataUnsafe && tg.initDataUnsafe.user
-                 ? tg.initDataUnsafe.user.id
-                 : null;
 
-// ── Default DATA structure (shown while loading) ────────────
-const DATA = {
-  user:       { name: 'Loading...', active: false, paused: false, amount: 10, risk: 'medium', connected: false, sub: '...' },
-  account:    { balance: 0, change: 0, changePct: 0 },
-  stats:      { open: 0, wins: 0, losses: 0, totalProfit: 0, totalLoss: 0 },
-  openTrades: [],
-  history:    [],
-  demo:       { active: false, balance: 1000, amount: 10, risk: 'medium', wins: 0, losses: 0, open: 0, profit: 0, loss: 0, unrealized: 0, locked: 0 },
-};
-
-// ── Fetch live data from trader.py API ──────────────────────
-async function loadLiveData() {
-  if (!USER_ID) {
-    showToast('Open in Telegram to see live data');
-    return;
+// Get user ID from Telegram WebApp, fall back to URL param for testing
+function getUserId() {
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    return tg.initDataUnsafe.user.id;
   }
-  try {
-    const res  = await fetch(`${API_BASE}/api/user?user_id=${USER_ID}`);
-    if (!res.ok) throw new Error('API error ' + res.status);
-    const json = await res.json();
-
-    // Map API response to DATA structure
-    DATA.user.name      = json.user.name || 'User';
-    DATA.user.active    = json.user.active;
-    DATA.user.paused    = json.user.paused;
-    DATA.user.amount    = json.user.amount;
-    DATA.user.risk      = json.user.risk;
-    DATA.user.connected = json.user.connected;
-    DATA.user.sub       = json.user.sub;
-
-    DATA.stats.open        = json.stats.open;
-    DATA.stats.wins        = json.stats.wins;
-    DATA.stats.losses      = json.stats.losses;
-    DATA.stats.totalProfit = json.stats.totalProfit;
-    DATA.stats.totalLoss   = json.stats.totalLoss;
-
-    DATA.openTrades = json.openTrades || [];
-    DATA.history    = json.history    || [];
-
-    DATA.demo.active     = json.demo.active;
-    DATA.demo.balance    = json.demo.balance;
-    DATA.demo.locked     = json.demo.locked;
-    DATA.demo.unrealized = json.demo.unrealized || 0;
-    DATA.demo.amount     = json.demo.amount;
-    DATA.demo.risk       = json.demo.risk;
-    DATA.demo.wins       = json.demo.wins;
-    DATA.demo.losses     = json.demo.losses;
-    DATA.demo.open       = json.demo.open;
-    DATA.demo.profit     = json.demo.profit;
-    DATA.demo.loss       = json.demo.loss;
-
-    // Refresh current screen with live data
-    const active = document.querySelector('.nav-item.active');
-    if (active) goTo(active.id.replace('nav-', ''));
-
-  } catch (e) {
-    console.error('API load error:', e);
-    showToast('Could not load live data');
-  }
+  const params = new URLSearchParams(window.location.search);
+  return params.get('user_id') || null;
 }
 
-// ── Send action to trader.py API ─────────────────────────────
-async function apiAction(action, value) {
-  if (!USER_ID) return;
-  try {
-    const body = { user_id: USER_ID, action };
-    if (value !== undefined) body.value = value;
-    const res = await fetch(`${API_BASE}/api/action`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Action failed');
-    return json;
-  } catch (e) {
-    showToast('Action failed: ' + e.message);
-    return null;
+// ── State ───────────────────────────────────────────
+let DATA = null;
+let TRADES = [];
+let USER_ID = null;
+let currentTab = 'home';
+let isLoading = false;
+
+// ── Formatters ──────────────────────────────────────
+function fmt(n) { return Math.abs(parseFloat(n)).toFixed(2); }
+function fmtB(n) { return parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s.replace(' ', 'T'));
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 86400000) {
+    const h = d.getHours().toString().padStart(2,'0');
+    const m = d.getMinutes().toString().padStart(2,'0');
+    return 'Today ' + h + ':' + m;
   }
+  if (diff < 172800000) return 'Yesterday';
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
 }
 
-function fmt(n) { return Math.abs(n).toFixed(2); }
-function fmtB(n) { return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-function goTo(s) {
-  ['home','trades','demo','settings'].forEach(x => document.getElementById('nav-'+x).classList.toggle('active', x===s));
-  const subs = {home:'Auto-trading active', trades:'Trade history', demo:'Demo mode', settings:'Account settings'};
-  document.getElementById('topbar-sub').textContent = subs[s];
+// ── API Calls ───────────────────────────────────────
+async function fetchUserData(uid) {
+  const resp = await fetch(`${API_BASE}/api/user?user_id=${uid}`);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return await resp.json();
+}
+
+async function fetchTrades(uid, limit=30) {
+  const resp = await fetch(`${API_BASE}/api/trades?user_id=${uid}&limit=${limit}`);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const json = await resp.json();
+  return json.trades || [];
+}
+
+// ── Load + Refresh ──────────────────────────────────
+async function loadData(silent=false) {
+  if (!USER_ID) {
+    showError('No Telegram user detected.\nOpen this app from the MRRIK bot.');
+    return;
+  }
+  if (!silent) {
+    document.getElementById('screen-content').innerHTML = `
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading your data...</div>
+      </div>`;
+  }
+  try {
+    const [userData, tradesData] = await Promise.all([
+      fetchUserData(USER_ID),
+      fetchTrades(USER_ID, 30)
+    ]);
+    DATA = userData;
+    TRADES = tradesData;
+    // Mark live dot green — API is responding
+    document.getElementById('live-dot').style.background = 'var(--green)';
+    goTo(currentTab, true);
+  } catch(e) {
+    document.getElementById('live-dot').style.background = 'var(--red)';
+    if (!silent) showError('Could not connect to MRRIK server.\nCheck your connection and try again.', true);
+    else showToast('⚠️ Refresh failed');
+  }
+}
+
+function showError(msg, showRetry=false) {
+  document.getElementById('screen-content').innerHTML = `
+    <div class="error-wrap">
+      <div class="error-icon">⚡</div>
+      <div class="error-msg">${msg.replace('\n','<br>')}</div>
+      ${showRetry ? '<div class="retry-btn" onclick="loadData()">Try again</div>' : ''}
+    </div>`;
+}
+
+// ── Navigation ──────────────────────────────────────
+function goTo(tab, skipAnim=false) {
+  currentTab = tab;
+  ['home','trades','demo','settings'].forEach(x => {
+    document.getElementById('nav-'+x).classList.toggle('active', x===tab);
+  });
+  const subs = {home:'Auto-trading', trades:'Trade history', demo:'Demo mode', settings:'Account settings'};
+  document.getElementById('topbar-sub').textContent = DATA
+    ? (DATA.is_paused ? '⏸ Trading paused' : subs[tab])
+    : subs[tab];
+
+  if (!DATA) return;
   const content = document.getElementById('screen-content');
-  content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[s]();
+  if (!skipAnim) content.style.animation = 'none';
+  content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
+  if (!skipAnim) { void content.offsetWidth; content.style.animation = ''; }
   document.getElementById('screen').scrollTop = 0;
 }
 
-async function setRisk(mode) {
-  const res = await apiAction('setrisk', mode);
-  if (res) {
-    DATA.user.risk = DATA.demo.risk = mode;
-    document.querySelectorAll('.risk-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-    const descs = {
-      low:    'Close 100% at TP1 — exit immediately with guaranteed profit.',
-      medium: 'Max 3 TPs used (40%/40%/20%). Balanced profit with controlled exposure.',
-      high:   'All TPs used, equal split. Maximum exposure to the full move.'
-    };
-    document.querySelectorAll('.risk-desc').forEach(d => d.textContent = descs[mode]);
-    showToast('Risk set to ' + mode);
-  }
+// ── Risk mode helpers ───────────────────────────────
+const RISK_DESCS = {
+  low:    'Close 100% at TP1 — exit immediately with guaranteed profit.',
+  medium: 'Max 3 TPs used, 40/40/20 split. Balanced profit with controlled risk.',
+  high:   'All TPs used, equal split. Maximum exposure to the full move.'
+};
+
+function setRisk(mode) {
+  if (!USER_ID) return;
+  DATA.risk_mode = mode;
+  document.querySelectorAll('.risk-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('.risk-desc').forEach(d => d.textContent = RISK_DESCS[mode]);
+  showToast('Risk set to ' + mode);
+  // Send command to bot via Telegram
+  if (tg) tg.sendData(JSON.stringify({action:'setrisk', mode}));
 }
 
-async function togglePause() {
-  const action = DATA.user.paused ? 'resume' : 'pause';
-  const res = await apiAction(action);
-  if (res) {
-    DATA.user.paused = !DATA.user.paused;
-    showToast(DATA.user.paused ? '⏸ Trading paused' : '▶ Trading resumed');
-    goTo(document.querySelector('.nav-item.active').id.replace('nav-',''));
-  }
+function togglePause() {
+  if (!DATA || !USER_ID) return;
+  DATA.is_paused = !DATA.is_paused;
+  showToast(DATA.is_paused ? '⏸ Trading paused' : '▶ Trading resumed');
+  if (tg) tg.sendData(JSON.stringify({action: DATA.is_paused ? 'pause' : 'resume'}));
+  goTo(currentTab, true);
 }
 
-async function setAmount(v) { const res = await apiAction('setamount', v); if(res){ DATA.user.amount = v; const e = document.getElementById('amount-val'); if(e) e.textContent = v; showToast('Amount set to $'+v); } }
-async function setDemoAmt(v) { const res = await apiAction('setdemo', v); if(res){ DATA.demo.amount = v; const e = document.getElementById('demo-amt'); if(e) e.textContent = v; showToast('Demo amount set to $'+v); } }
+function setAmount(v) {
+  if (!DATA) return;
+  const e = document.getElementById('amount-val');
+  if (e) e.textContent = v;
+  showToast('Amount set to $' + v);
+  if (tg) tg.sendData(JSON.stringify({action:'setamount', amount:v}));
+}
 
+function setDemoAmt(v) {
+  if (!DATA) return;
+  const e = document.getElementById('demo-amt');
+  if (e) e.textContent = v;
+  showToast('Demo amount set to $' + v);
+  if (tg) tg.sendData(JSON.stringify({action:'setdemo', amount:v}));
+}
+
+// ── Auto-refresh every 60 seconds ──────────────────
+setInterval(() => loadData(true), 60000);
+
+// ── Render: Home ────────────────────────────────────
 function renderHome() {
   const d = DATA;
-  const riskDescs = {low:'Close 60% at TP1. Consistent and safe.',medium:'Split equally across all targets.',high:'Keep 70% open until final target.'};
+  const demo = d.demo;
+  const ret = demo.total_return;
+  const retPos = ret >= 0;
+  const openTrades = TRADES.filter(t => t.status === 'OPEN').slice(0, 3);
+
   return `
     <div class="balance-card">
-      <div class="bal-label">Total account value</div>
-      <div class="bal-amount">$${fmtB(d.account.balance)}</div>
-      <div class="bal-change"><span>+$${fmt(d.account.change)} &nbsp;+${d.account.changePct.toFixed(2)}% all time</span></div>
+      <div class="bal-label">Demo account value</div>
+      <div class="bal-amount">$${fmtB(demo.total_value)}</div>
+      <div class="bal-change ${retPos?'pos':'neg'}">
+        <span>${retPos?'+':'-'}$${fmt(ret)} &nbsp;${retPos?'+':''}${((ret/1000)*100).toFixed(2)}% all time</span>
+      </div>
     </div>
     <div class="stats-row">
-      <div class="stat-item"><div class="stat-label">Open</div><div class="stat-value orange">${d.stats.open}</div></div>
-      <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${d.stats.wins}</div></div>
-      <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${d.stats.losses}</div></div>
+      <div class="stat-item"><div class="stat-label">Open</div><div class="stat-value orange">${demo.open_trades}</div></div>
+      <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${demo.wins}</div></div>
+      <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${demo.losses}</div></div>
     </div>
     <div class="section" style="margin-top:14px">
-      <div class="section-header"><div class="section-title">Open trades</div><div class="section-action" onclick="goTo('trades')">See all</div></div>
-      ${d.openTrades.map(t=>`
-      <div class="trade-card">
-        <div>
-          <div class="trade-coin">${t.symbol} <span class="badge ${t.dir.toLowerCase()}">${t.dir}</span></div>
-          <div class="trade-detail">x${t.lev} · Entry $${t.entry.toLocaleString()} · SL $${t.sl.toLocaleString()}</div>
-        </div>
-        <div><div class="trade-pnl">+$${fmt(t.pnl)}</div><div class="trade-pct">+${t.pnlPct}%</div></div>
-      </div>`).join('')}
+      <div class="section-header">
+        <div class="section-title">Open trades</div>
+        <div class="section-action" onclick="goTo('trades')">See all</div>
+      </div>
+      ${openTrades.length ? openTrades.map(t => {
+        const isLong = t.direction === 'LONG';
+        return `
+        <div class="trade-card">
+          <div>
+            <div class="trade-coin">${t.symbol} <span class="badge ${isLong?'long':'short'}">${t.direction}</span></div>
+            <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div>
+          </div>
+          <div>
+            <div class="trade-pnl pos">—</div>
+            <div class="trade-pct">${fmtDate(t.opened_at)}</div>
+          </div>
+        </div>`;
+      }).join('') : `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">No open trades right now</div>`}
     </div>
     <div class="section" style="margin-top:6px">
       <div class="section-header"><div class="section-title">Quick controls</div></div>
       <div class="controls-grid">
         <div class="ctrl-card" onclick="togglePause()">
-          <div class="ctrl-icon ${d.user.paused?'green':'orange'}">${d.user.paused?'▶':'⏸'}</div>
-          <div><div class="ctrl-name">${d.user.paused?'Resume':'Pause'}</div><div class="ctrl-sub">${d.user.paused?'Paused':'Active'}</div></div>
+          <div class="ctrl-icon ${d.is_paused?'green':'orange'}">${d.is_paused?'▶':'⏸'}</div>
+          <div><div class="ctrl-name">${d.is_paused?'Resume':'Pause'}</div><div class="ctrl-sub">${d.is_paused?'Paused':'Active'}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('settings')">
           <div class="ctrl-icon blue">$</div>
-          <div><div class="ctrl-name">Amount</div><div class="ctrl-sub">$${d.user.amount}/trade</div></div>
+          <div><div class="ctrl-name">Amount</div><div class="ctrl-sub">$${demo.free_balance.toFixed(0)} free</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('settings')">
-          <div class="ctrl-icon ${d.user.connected?'green':'red'}">🔑</div>
-          <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${d.user.connected?'Connected':'Not set'}</div></div>
+          <div class="ctrl-icon ${d.has_api_key?'green':'red'}">🔑</div>
+          <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${d.has_api_key?'Connected':'Not set'}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('trades')">
           <div class="ctrl-icon purple">📈</div>
-          <div><div class="ctrl-name">Statistics</div><div class="ctrl-sub">View history</div></div>
+          <div><div class="ctrl-name">Win rate</div><div class="ctrl-sub">${demo.win_rate}%</div></div>
         </div>
       </div>
       <div class="risk-card">
         <div class="risk-label">Risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${d.user.risk==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${d.user.risk==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${d.user.risk==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${d.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${d.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${d.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">${riskDescs[d.user.risk]}</div>
+        <div class="risk-desc">${RISK_DESCS[d.risk_mode]}</div>
       </div>
       <div class="demo-banner" onclick="goTo('demo')">
         <div class="demo-left">
           <div style="font-size:22px">🎮</div>
-          <div><div class="demo-title">Demo mode active</div><div class="demo-sub">Virtual balance: $${fmtB(d.demo.balance)}</div></div>
+          <div>
+            <div class="demo-title">${d.is_demo ? 'Demo mode active' : 'Demo mode off'}</div>
+            <div class="demo-sub">Virtual balance: $${fmtB(demo.total_value)}</div>
+          </div>
         </div>
         <div style="color:var(--purple);opacity:0.6;font-size:18px">›</div>
       </div>
     </div>`;
 }
 
+// ── Render: Trades ──────────────────────────────────
 function renderTrades() {
+  const demo = DATA.demo;
+  const openTrades = TRADES.filter(t => t.status === 'OPEN');
+  const closedTrades = TRADES.filter(t => t.status !== 'OPEN');
+
   return `
     <div class="section" style="margin-top:14px">
-      <div class="section-header"><div class="section-title">Open positions</div></div>
-      ${DATA.openTrades.map(t=>`
-      <div class="trade-card">
-        <div><div class="trade-coin">${t.symbol} <span class="badge ${t.dir.toLowerCase()}">${t.dir}</span></div><div class="trade-detail">x${t.lev} · Entry $${t.entry.toLocaleString()} · SL $${t.sl.toLocaleString()}</div></div>
-        <div><div class="trade-pnl">+$${fmt(t.pnl)}</div><div class="trade-pct">+${t.pnlPct}%</div></div>
-      </div>`).join('')}
+      <div class="section-header"><div class="section-title">Open positions (${openTrades.length})</div></div>
+      ${openTrades.length ? openTrades.map(t => {
+        const isLong = t.direction === 'LONG';
+        return `
+        <div class="trade-card">
+          <div><div class="trade-coin">${t.symbol} <span class="badge ${isLong?'long':'short'}">${t.direction}</span></div>
+          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div></div>
+          <div><div class="trade-pnl pos" style="color:var(--text3)">OPEN</div><div class="trade-pct">${fmtDate(t.opened_at)}</div></div>
+        </div>`;
+      }).join('') : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No open trades</div>`}
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 0">
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total profit</div>
-        <div style="font-size:20px;font-weight:600;color:var(--green)">+$${fmt(DATA.stats.totalProfit)}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Realized profit</div>
+        <div style="font-size:20px;font-weight:600;color:var(--green)">+$${fmt(demo.realized_profit)}</div>
       </div>
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total loss</div>
-        <div style="font-size:20px;font-weight:600;color:var(--red)">-$${fmt(DATA.stats.totalLoss)}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Realized loss</div>
+        <div style="font-size:20px;font-weight:600;color:var(--red)">-$${fmt(demo.realized_loss)}</div>
       </div>
     </div>
-    <div class="section" style="padding-top:0">
-      <div class="section-header"><div class="section-title">Trade history</div></div>
+    <div class="section" style="padding-top:12px">
+      <div class="section-header"><div class="section-title">Trade history (${closedTrades.length})</div></div>
+      ${closedTrades.length ? `
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
-        ${DATA.history.map(t=>`
-        <div class="trade-hist">
-          <div><div class="hist-coin">${t.symbol} <span class="badge ${t.dir.toLowerCase()}">${t.dir}</span></div><div class="hist-date">${t.date}</div></div>
-          <div><div class="hist-pnl ${t.win?'win':'loss'}">${t.win?'+':'-'}$${fmt(t.pnl)}</div><div class="hist-pct">${t.win?'+':''}${t.pnlPct}%</div></div>
-        </div>`).join('')}
-      </div>
+        ${closedTrades.map(t => {
+          const win = parseFloat(t.profit_usd) >= 0;
+          const statusLabel = t.status === 'TP_HIT' ? 'TP' : t.status === 'SL_HIT' ? 'SL' : t.status === 'AUTO_CLOSED' ? 'AUTO' : t.status;
+          return `
+          <div class="trade-hist">
+            <div><div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+            <div class="hist-date">${statusLabel} &middot; ${fmtDate(t.closed_at)}</div></div>
+            <div><div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit_usd)}</div>
+            <div class="hist-pct">${win?'+':''}${parseFloat(t.profit_pct).toFixed(2)}%</div></div>
+          </div>`;
+        }).join('')}
+      </div>` : `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">No closed trades yet</div>`}
     </div>`;
 }
 
+// ── Render: Demo ────────────────────────────────────
 function renderDemo() {
-  const d = DATA.demo;
-  const net = (d.profit - d.loss).toFixed(2);
+  const d = DATA;
+  const demo = d.demo;
+  const ret = demo.total_return;
+  const retPos = ret >= 0;
+
   return `
     <div class="section" style="margin-top:14px">
       <div class="demo-bal-card">
         <div class="demo-bal-label">Virtual balance</div>
-        <div class="demo-bal-amount">$${fmtB(d.balance)}</div>
-        <div style="font-size:11px;color:rgba(167,139,250,0.5);margin-top:4px">Starting: $1,000.00 · +$${fmt(d.balance-1000)} earned</div>
+        <div class="demo-bal-amount">$${fmtB(demo.total_value)}</div>
+        <div style="font-size:11px;color:rgba(167,139,250,0.5);margin-top:4px">
+          Starting: $1,000.00 &middot; ${retPos?'+':'-'}$${fmt(ret)} ${retPos?'earned':'lost'}
+        </div>
       </div>
       <div class="demo-stats">
-        <div class="demo-stat"><div class="demo-stat-l">Wins</div><div class="demo-stat-v" style="color:var(--green)">${d.wins}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Losses</div><div class="demo-stat-v" style="color:var(--red)">${d.losses}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Open</div><div class="demo-stat-v" style="color:var(--purple)">${d.open}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Net result</div><div class="demo-stat-v" style="color:var(--green)">+$${fmt(parseFloat(net))}</div></div>
+        <div class="demo-stat"><div class="demo-stat-l">Wins</div><div class="demo-stat-v" style="color:var(--green)">${demo.wins}</div></div>
+        <div class="demo-stat"><div class="demo-stat-l">Losses</div><div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div></div>
+        <div class="demo-stat"><div class="demo-stat-l">Open</div><div class="demo-stat-v" style="color:var(--purple)">${demo.open_trades}</div></div>
+        <div class="demo-stat"><div class="demo-stat-l">Win rate</div><div class="demo-stat-v" style="color:var(--orange)">${demo.win_rate}%</div></div>
       </div>
-      <div class="input-row" style="border-color:rgba(167,139,250,0.25)">
-        <div class="input-lbl">Demo trade amount</div>
-        <div class="amount-display"><span class="amount-curr">$</span><span id="demo-amt" style="font-size:32px;font-weight:600;color:var(--text)">${d.amount}</span></div>
-        <div class="amount-btns">
-          ${[10,25,50,100].map(v=>`<div class="amount-btn" onclick="setDemoAmt(${v})">$${v}</div>`).join('')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Free balance</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">$${fmtB(demo.free_balance)}</div>
+        </div>
+        <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Locked in trades</div>
+          <div style="font-size:15px;font-weight:600;color:var(--orange)">$${fmtB(demo.locked)}</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s" onclick="showToast('✅ Demo reset to $1000')">
+        <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s" onclick="showToast('✅ Use /resetdemo in the bot')">
           <div style="font-size:13px;color:var(--purple)">🔄 Reset demo</div>
           <div style="font-size:10px;color:rgba(167,139,250,0.4);margin-top:2px">Keep history</div>
         </div>
-        <div style="flex:1;background:var(--red-dim);border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer" onclick="showToast('🗑 Demo history cleared')">
+        <div style="flex:1;background:var(--red-dim);border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer" onclick="showToast('🗑 Use /cleardemo in the bot')">
           <div style="font-size:13px;color:var(--red)">🗑 Clear all</div>
           <div style="font-size:10px;color:rgba(239,68,68,0.4);margin-top:2px">Wipe history</div>
         </div>
@@ -426,63 +514,98 @@ function renderDemo() {
       <div class="risk-card" style="margin-bottom:16px">
         <div class="risk-label">Demo risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${d.risk==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${d.risk==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${d.risk==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${d.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${d.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${d.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">Split equally across all targets.</div>
+        <div class="risk-desc">${RISK_DESCS[d.risk_mode]}</div>
       </div>
     </div>`;
 }
 
+// ── Render: Settings ────────────────────────────────
 function renderSettings() {
-  const u = DATA.user;
+  const u = DATA;
   return `
     <div class="section" style="margin-top:14px">
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Account</div>
       <div class="settings-group">
-        <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)">✓</div><div style="font-size:13px;color:var(--text)">Account status</div></div><span class="pill active">Active</span></div>
-        <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔑</div><div style="font-size:13px;color:var(--text)">Binance API</div></div><span class="pill ${u.connected?'active':'paused'}">${u.connected?'Connected':'Not set'}</span></div>
-      </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Trading settings</div>
-      <div class="input-row">
-        <div class="input-lbl">Trade amount per signal</div>
-        <div class="amount-display"><span class="amount-curr">$</span><span class="amount-val" id="amount-val">${u.amount}</span></div>
-        <div class="amount-btns">
-          ${[5,10,25,50,100].map(v=>`<div class="amount-btn" onclick="setAmount(${v})">$${v}</div>`).join('')}
+        <div class="settings-row">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)">✓</div>
+            <div style="font-size:13px;color:var(--text)">Account status</div>
+          </div>
+          <span class="pill ${u.is_active?'active':'inactive'}">${u.is_active?'Active':'Inactive'}</span>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔑</div>
+            <div style="font-size:13px;color:var(--text)">Binance API</div>
+          </div>
+          <span class="pill ${u.has_api_key?'active':'paused'}">${u.has_api_key?'Connected':'Not set'}</span>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)">🎮</div>
+            <div style="font-size:13px;color:var(--text)">Demo mode</div>
+          </div>
+          <span class="pill ${u.is_demo?'active':'inactive'}">${u.is_demo?'Active':'Off'}</span>
         </div>
       </div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Trading settings</div>
       <div class="risk-card">
         <div class="risk-label">Risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${u.risk==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${u.risk==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${u.risk==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${u.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${u.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${u.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">Split equally across all targets.</div>
+        <div class="risk-desc">${RISK_DESCS[u.risk_mode]}</div>
       </div>
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Controls</div>
       <div class="settings-group">
         <div class="settings-row" onclick="togglePause()">
-          <div class="settings-row-left"><div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${u.paused?'▶':'⏸'}</div><div style="font-size:13px;color:var(--text)">${u.paused?'Resume trading':'Pause trading'}</div></div>
-          <span class="pill ${u.paused?'paused':'active'}">${u.paused?'Paused':'Active'}</span>
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${u.is_paused?'▶':'⏸'}</div>
+            <div style="font-size:13px;color:var(--text)">${u.is_paused?'Resume trading':'Pause trading'}</div>
+          </div>
+          <span class="pill ${u.is_paused?'paused':'active'}">${u.is_paused?'Paused':'Active'}</span>
         </div>
-        <div class="settings-row" onclick="showToast('✅ API key removed')">
-          <div class="settings-row-left"><div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)">🔌</div><div style="font-size:13px;color:var(--red)">Disconnect Binance</div></div>
+        <div class="settings-row" onclick="showToast('Use /disconnect in the bot')">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)">🔌</div>
+            <div style="font-size:13px;color:var(--red)">Disconnect Binance</div>
+          </div>
           <div style="font-size:16px;color:var(--text3)">›</div>
         </div>
       </div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Info</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="loadData()">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔄</div>
+            <div style="font-size:13px;color:var(--text)">Refresh data</div>
+          </div>
+          <div style="font-size:16px;color:var(--text3)">›</div>
+        </div>
+        <div class="settings-row" onclick="showToast('@MRRIK_support')">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">💬</div>
+            <div style="font-size:13px;color:var(--text)">Support</div>
+          </div>
+          <div style="font-size:13px;color:var(--text3)">@MRRIK_support</div>
+        </div>
+      </div>
       <div style="text-align:center;padding:20px 0 16px">
-        <div style="font-size:11px;color:var(--text3)">MRRIK Trading AI · v2.0</div>
+        <div style="font-size:11px;color:var(--text3)">MRRIK Trading AI · v2.1</div>
         <div style="font-size:10px;color:var(--text3);margin-top:3px;opacity:0.5">All signals are for informational purposes only.</div>
       </div>
     </div>`;
 }
 
-goTo('home');
-// Load live data on startup, then refresh every 30 seconds
-loadLiveData();
-setInterval(loadLiveData, 30000);
+// ── Boot ────────────────────────────────────────────
+USER_ID = getUserId();
+loadData();
 </script>
 </body>
 </html>
