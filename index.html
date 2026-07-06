@@ -161,23 +161,92 @@
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#111111'); tg.setBackgroundColor('#0d0d0d'); }
 
+// ── Live API Configuration ──────────────────────────────────
+const API_BASE = 'https://mrrik.duckdns.org';
+const USER_ID  = tg && tg.initDataUnsafe && tg.initDataUnsafe.user
+                 ? tg.initDataUnsafe.user.id
+                 : null;
+
+// ── Default DATA structure (shown while loading) ────────────
 const DATA = {
-  user: { name: 'Leonit', active: true, paused: false, amount: 50, risk: 'medium', connected: true },
-  account: { balance: 1247.50, change: 247.50, changePct: 24.75 },
-  stats: { open: 2, wins: 18, losses: 4, totalProfit: 312.40, totalLoss: 64.90 },
-  openTrades: [
-    { symbol: 'BTCUSDT', dir: 'LONG', entry: 67000, sl: 65000, lev: 10, pnl: 12.40, pnlPct: 8.3 },
-    { symbol: 'ETHUSDT', dir: 'LONG', entry: 3200, sl: 3050, lev: 8, pnl: 6.20, pnlPct: 4.1 },
-  ],
-  history: [
-    { symbol: 'SIRENUSDT', dir: 'LONG', date: 'Today 05:07', pnl: 4.52, pnlPct: 45.18, win: true },
-    { symbol: 'MANTAUSDT', dir: 'LONG', date: 'Yesterday', pnl: 7.80, pnlPct: 38.34, win: true },
-    { symbol: 'TWTUSDT', dir: 'LONG', date: 'Jun 18', pnl: -3.20, pnlPct: -14.5, win: false },
-    { symbol: 'BTCUSDT', dir: 'SHORT', date: 'Jun 17', pnl: 9.10, pnlPct: 55.0, win: true },
-    { symbol: 'OPUSDT', dir: 'LONG', date: 'Jun 16', pnl: -1.80, pnlPct: -9.0, win: false },
-  ],
-  demo: { active: true, balance: 1893.45, amount: 10, risk: 'medium', wins: 26, losses: 9, open: 5, profit: 4296.74, loss: 2775.99 },
+  user:       { name: 'Loading...', active: false, paused: false, amount: 10, risk: 'medium', connected: false, sub: '...' },
+  account:    { balance: 0, change: 0, changePct: 0 },
+  stats:      { open: 0, wins: 0, losses: 0, totalProfit: 0, totalLoss: 0 },
+  openTrades: [],
+  history:    [],
+  demo:       { active: false, balance: 1000, amount: 10, risk: 'medium', wins: 0, losses: 0, open: 0, profit: 0, loss: 0, unrealized: 0, locked: 0 },
 };
+
+// ── Fetch live data from trader.py API ──────────────────────
+async function loadLiveData() {
+  if (!USER_ID) {
+    showToast('Open in Telegram to see live data');
+    return;
+  }
+  try {
+    const res  = await fetch(`${API_BASE}/api/user?user_id=${USER_ID}`);
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const json = await res.json();
+
+    // Map API response to DATA structure
+    DATA.user.name      = json.user.name || 'User';
+    DATA.user.active    = json.user.active;
+    DATA.user.paused    = json.user.paused;
+    DATA.user.amount    = json.user.amount;
+    DATA.user.risk      = json.user.risk;
+    DATA.user.connected = json.user.connected;
+    DATA.user.sub       = json.user.sub;
+
+    DATA.stats.open        = json.stats.open;
+    DATA.stats.wins        = json.stats.wins;
+    DATA.stats.losses      = json.stats.losses;
+    DATA.stats.totalProfit = json.stats.totalProfit;
+    DATA.stats.totalLoss   = json.stats.totalLoss;
+
+    DATA.openTrades = json.openTrades || [];
+    DATA.history    = json.history    || [];
+
+    DATA.demo.active     = json.demo.active;
+    DATA.demo.balance    = json.demo.balance;
+    DATA.demo.locked     = json.demo.locked;
+    DATA.demo.unrealized = json.demo.unrealized || 0;
+    DATA.demo.amount     = json.demo.amount;
+    DATA.demo.risk       = json.demo.risk;
+    DATA.demo.wins       = json.demo.wins;
+    DATA.demo.losses     = json.demo.losses;
+    DATA.demo.open       = json.demo.open;
+    DATA.demo.profit     = json.demo.profit;
+    DATA.demo.loss       = json.demo.loss;
+
+    // Refresh current screen with live data
+    const active = document.querySelector('.nav-item.active');
+    if (active) goTo(active.id.replace('nav-', ''));
+
+  } catch (e) {
+    console.error('API load error:', e);
+    showToast('Could not load live data');
+  }
+}
+
+// ── Send action to trader.py API ─────────────────────────────
+async function apiAction(action, value) {
+  if (!USER_ID) return;
+  try {
+    const body = { user_id: USER_ID, action };
+    if (value !== undefined) body.value = value;
+    const res = await fetch(`${API_BASE}/api/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Action failed');
+    return json;
+  } catch (e) {
+    showToast('Action failed: ' + e.message);
+    return null;
+  }
+}
 
 function fmt(n) { return Math.abs(n).toFixed(2); }
 function fmtB(n) { return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -197,22 +266,33 @@ function goTo(s) {
   document.getElementById('screen').scrollTop = 0;
 }
 
-function setRisk(mode) {
-  DATA.user.risk = DATA.demo.risk = mode;
-  document.querySelectorAll('.risk-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  const descs = {low:'Close 60% at TP1. Consistent and safe.', medium:'Split equally across all targets.', high:'Keep 70% open until final target. Maximum profit.'};
-  document.querySelectorAll('.risk-desc').forEach(d => d.textContent = descs[mode]);
-  showToast('Risk set to ' + mode);
+async function setRisk(mode) {
+  const res = await apiAction('setrisk', mode);
+  if (res) {
+    DATA.user.risk = DATA.demo.risk = mode;
+    document.querySelectorAll('.risk-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    const descs = {
+      low:    'Close 100% at TP1 — exit immediately with guaranteed profit.',
+      medium: 'Max 3 TPs used (40%/40%/20%). Balanced profit with controlled exposure.',
+      high:   'All TPs used, equal split. Maximum exposure to the full move.'
+    };
+    document.querySelectorAll('.risk-desc').forEach(d => d.textContent = descs[mode]);
+    showToast('Risk set to ' + mode);
+  }
 }
 
-function togglePause() {
-  DATA.user.paused = !DATA.user.paused;
-  showToast(DATA.user.paused ? '⏸ Trading paused' : '▶ Trading resumed');
-  goTo(document.querySelector('.nav-item.active').id.replace('nav-',''));
+async function togglePause() {
+  const action = DATA.user.paused ? 'resume' : 'pause';
+  const res = await apiAction(action);
+  if (res) {
+    DATA.user.paused = !DATA.user.paused;
+    showToast(DATA.user.paused ? '⏸ Trading paused' : '▶ Trading resumed');
+    goTo(document.querySelector('.nav-item.active').id.replace('nav-',''));
+  }
 }
 
-function setAmount(v) { DATA.user.amount = v; const e = document.getElementById('amount-val'); if(e) e.textContent = v; showToast('Amount set to $'+v); }
-function setDemoAmt(v) { DATA.demo.amount = v; const e = document.getElementById('demo-amt'); if(e) e.textContent = v; showToast('Demo amount set to $'+v); }
+async function setAmount(v) { const res = await apiAction('setamount', v); if(res){ DATA.user.amount = v; const e = document.getElementById('amount-val'); if(e) e.textContent = v; showToast('Amount set to $'+v); } }
+async function setDemoAmt(v) { const res = await apiAction('setdemo', v); if(res){ DATA.demo.amount = v; const e = document.getElementById('demo-amt'); if(e) e.textContent = v; showToast('Demo amount set to $'+v); } }
 
 function renderHome() {
   const d = DATA;
@@ -400,6 +480,9 @@ function renderSettings() {
 }
 
 goTo('home');
+// Load live data on startup, then refresh every 30 seconds
+loadLiveData();
+setInterval(loadLiveData, 30000);
 </script>
 </body>
 </html>
