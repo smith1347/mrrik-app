@@ -131,8 +131,8 @@
   .error-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 10px; padding: 24px; text-align: center; }
   .error-icon { font-size: 36px; }
   .error-msg { font-size: 14px; color: var(--text2); line-height: 1.5; }
-  .error-sub { font-size: 12px; color: var(--text3); }
   .retry-btn { margin-top: 8px; padding: 10px 24px; border-radius: var(--radius); border: 0.5px solid var(--orange); background: var(--orange-dim); color: var(--orange); font-size: 13px; cursor: pointer; }
+  .empty-state { text-align: center; padding: 28px 16px; color: var(--text3); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -179,40 +179,32 @@
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#111111'); tg.setBackgroundColor('#0d0d0d'); }
 
-// ── API Config ──────────────────────────────────────
 const API_BASE = 'https://mrrik.duckdns.org';
+const BOT_USERNAME = 'TBARMENIABot';
 
-// Get user ID from Telegram WebApp, fall back to URL param for testing
 function getUserId() {
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    return tg.initDataUnsafe.user.id;
-  }
-  const params = new URLSearchParams(window.location.search);
-  return params.get('user_id') || null;
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) return tg.initDataUnsafe.user.id;
+  return new URLSearchParams(window.location.search).get('user_id') || null;
 }
 
 // ── State ───────────────────────────────────────────
-let DATA = null;
-let TRADES = [];
-let USER_ID = null;
+let USER     = null;   // /api/user response
+let STATS    = null;   // /api/stats  — real trade stats
+let REAL_TRADES  = []; // /api/real_trades
+let DEMO_TRADES  = []; // /api/demo_trades
+let USER_ID  = null;
 let currentTab = 'home';
-let isLoading = false;
 
 // ── Formatters ──────────────────────────────────────
-function fmt(n) { return Math.abs(parseFloat(n)).toFixed(2); }
+function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
 function fmtB(n) { return parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function fmtDate(s) {
   if (!s) return '';
-  const d = new Date(s.replace(' ', 'T'));
-  const now = new Date();
-  const diff = now - d;
-  if (diff < 86400000) {
-    const h = d.getHours().toString().padStart(2,'0');
-    const m = d.getMinutes().toString().padStart(2,'0');
-    return 'Today ' + h + ':' + m;
-  }
+  const d = new Date(s.replace(' ','T'));
+  const diff = Date.now() - d;
+  if (diff < 86400000) return 'Today ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
   if (diff < 172800000) return 'Yesterday';
-  return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 }
 
 function showToast(msg) {
@@ -222,41 +214,30 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ── API Calls ───────────────────────────────────────
-async function fetchUserData(uid) {
-  const resp = await fetch(`${API_BASE}/api/user?user_id=${uid}`);
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  return await resp.json();
+// ── API ─────────────────────────────────────────────
+async function apiFetch(path) {
+  const r = await fetch(`${API_BASE}${path}`);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
 }
 
-async function fetchTrades(uid, limit=30) {
-  const resp = await fetch(`${API_BASE}/api/trades?user_id=${uid}&limit=${limit}`);
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  const json = await resp.json();
-  return json.trades || [];
-}
-
-// ── Load + Refresh ──────────────────────────────────
 async function loadData(silent=false) {
-  if (!USER_ID) {
-    showError('No Telegram user detected.\nOpen this app from the MRRIK bot.');
-    return;
-  }
+  if (!USER_ID) { showError('No Telegram user detected.\nOpen this app from the MRRIK bot.'); return; }
   if (!silent) {
     document.getElementById('screen-content').innerHTML = `
-      <div class="loading-wrap">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading your data...</div>
-      </div>`;
+      <div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-text">Loading your data...</div></div>`;
   }
   try {
-    const [userData, tradesData] = await Promise.all([
-      fetchUserData(USER_ID),
-      fetchTrades(USER_ID, 30)
+    const [userData, statsData, realData, demoData] = await Promise.all([
+      apiFetch(`/api/user?user_id=${USER_ID}`),
+      apiFetch(`/api/stats?user_id=${USER_ID}`),
+      apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=30`),
+      apiFetch(`/api/demo_trades?user_id=${USER_ID}&limit=30`),
     ]);
-    DATA = userData;
-    TRADES = tradesData;
-    // Mark live dot green — API is responding
+    USER        = userData;
+    STATS       = statsData;
+    REAL_TRADES = realData.trades  || [];
+    DEMO_TRADES = demoData.trades  || [];
     document.getElementById('live-dot').style.background = 'var(--green)';
     goTo(currentTab, true);
   } catch(e) {
@@ -266,27 +247,24 @@ async function loadData(silent=false) {
   }
 }
 
-function showError(msg, showRetry=false) {
+function showError(msg, retry=false) {
   document.getElementById('screen-content').innerHTML = `
     <div class="error-wrap">
       <div class="error-icon">⚡</div>
       <div class="error-msg">${msg.replace('\n','<br>')}</div>
-      ${showRetry ? '<div class="retry-btn" onclick="loadData()">Try again</div>' : ''}
+      ${retry ? '<div class="retry-btn" onclick="loadData()">Try again</div>' : ''}
     </div>`;
 }
 
 // ── Navigation ──────────────────────────────────────
 function goTo(tab, skipAnim=false) {
   currentTab = tab;
-  ['home','trades','demo','settings'].forEach(x => {
-    document.getElementById('nav-'+x).classList.toggle('active', x===tab);
-  });
-  const subs = {home:'Auto-trading', trades:'Trade history', demo:'Demo mode', settings:'Account settings'};
-  document.getElementById('topbar-sub').textContent = DATA
-    ? (DATA.is_paused ? '⏸ Trading paused' : subs[tab])
-    : subs[tab];
-
-  if (!DATA) return;
+  ['home','trades','demo','settings'].forEach(x =>
+    document.getElementById('nav-'+x).classList.toggle('active', x===tab));
+  const subs = {home:'Auto-trading', trades:'Real trades', demo:'Demo mode', settings:'Account settings'};
+  document.getElementById('topbar-sub').textContent =
+    USER ? (USER.is_paused ? '⏸ Trading paused' : subs[tab]) : subs[tab];
+  if (!USER) return;
   const content = document.getElementById('screen-content');
   if (!skipAnim) content.style.animation = 'none';
   content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
@@ -294,7 +272,7 @@ function goTo(tab, skipAnim=false) {
   document.getElementById('screen').scrollTop = 0;
 }
 
-// ── Risk mode helpers ───────────────────────────────
+// ── Helpers ─────────────────────────────────────────
 const RISK_DESCS = {
   low:    'Close 100% at TP1 — exit immediately with guaranteed profit.',
   medium: 'Max 3 TPs used, 40/40/20 split. Balanced profit with controlled risk.',
@@ -302,118 +280,100 @@ const RISK_DESCS = {
 };
 
 function setRisk(mode) {
-  if (!USER_ID) return;
-  DATA.risk_mode = mode;
+  USER.risk_mode = mode;
   document.querySelectorAll('.risk-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   document.querySelectorAll('.risk-desc').forEach(d => d.textContent = RISK_DESCS[mode]);
   showToast('Risk set to ' + mode);
-  // Send command to bot via Telegram
-  if (tg) tg.sendData(JSON.stringify({action:'setrisk', mode}));
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setrisk_${mode}`);
 }
 
 function togglePause() {
-  if (!DATA || !USER_ID) return;
-  DATA.is_paused = !DATA.is_paused;
-  showToast(DATA.is_paused ? '⏸ Trading paused' : '▶ Trading resumed');
-  if (tg) tg.sendData(JSON.stringify({action: DATA.is_paused ? 'pause' : 'resume'}));
+  USER.is_paused = !USER.is_paused;
+  const cmd = USER.is_paused ? 'pause' : 'resume';
+  showToast(USER.is_paused ? '⏸ Trading paused' : '▶ Trading resumed');
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=${cmd}`);
   goTo(currentTab, true);
 }
 
-function setAmount(v) {
-  if (!DATA) return;
-  const e = document.getElementById('amount-val');
-  if (e) e.textContent = v;
-  showToast('Amount set to $' + v);
-  if (tg) tg.sendData(JSON.stringify({action:'setamount', amount:v}));
+function openBotCommand(cmd) {
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=${cmd}`);
+  else showToast('Open from Telegram to use this');
 }
 
-function setDemoAmt(v) {
-  if (!DATA) return;
-  const e = document.getElementById('demo-amt');
-  if (e) e.textContent = v;
-  showToast('Demo amount set to $' + v);
-  if (tg) tg.sendData(JSON.stringify({action:'setdemo', amount:v}));
-}
-
-// ── Auto-refresh every 60 seconds ──────────────────
-setInterval(() => loadData(true), 60000);
-
-// ── Render: Home ────────────────────────────────────
+// ── Render: Home (real trade stats) ─────────────────
 function renderHome() {
-  const d = DATA;
-  const demo = d.demo;
-  const ret = demo.total_return;
-  const retPos = ret >= 0;
-  const openTrades = TRADES.filter(t => t.status === 'OPEN').slice(0, 3);
+  const s = STATS;
+  const openTrades = REAL_TRADES.filter(t => t.status === 'OPEN').slice(0, 3);
+  const net = s.net;
+  const netPos = net >= 0;
 
   return `
     <div class="balance-card">
-      <div class="bal-label">Demo account value</div>
-      <div class="bal-amount">$${fmtB(demo.total_value)}</div>
-      <div class="bal-change ${retPos?'pos':'neg'}">
-        <span>${retPos?'+':'-'}$${fmt(ret)} &nbsp;${retPos?'+':''}${((ret/1000)*100).toFixed(2)}% all time</span>
+      <div class="bal-label">Real trading — net P&L</div>
+      <div class="bal-amount" style="color:${netPos?'var(--green)':'var(--red)'}">
+        ${netPos?'+':'-'}$${fmt(net)}
+      </div>
+      <div class="bal-change ${netPos?'pos':'neg'}">
+        <span>${s.wins} wins &nbsp;·&nbsp; ${s.losses} losses &nbsp;·&nbsp; ${s.win_rate}% win rate</span>
       </div>
     </div>
     <div class="stats-row">
-      <div class="stat-item"><div class="stat-label">Open</div><div class="stat-value orange">${demo.open_trades}</div></div>
-      <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${demo.wins}</div></div>
-      <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${demo.losses}</div></div>
+      <div class="stat-item"><div class="stat-label">Open</div><div class="stat-value orange">${s.open_trades}</div></div>
+      <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${s.wins}</div></div>
+      <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${s.losses}</div></div>
     </div>
     <div class="section" style="margin-top:14px">
       <div class="section-header">
-        <div class="section-title">Open trades</div>
+        <div class="section-title">Open real trades</div>
         <div class="section-action" onclick="goTo('trades')">See all</div>
       </div>
-      ${openTrades.length ? openTrades.map(t => {
-        const isLong = t.direction === 'LONG';
-        return `
-        <div class="trade-card">
-          <div>
-            <div class="trade-coin">${t.symbol} <span class="badge ${isLong?'long':'short'}">${t.direction}</span></div>
-            <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div>
-          </div>
-          <div>
-            <div class="trade-pnl pos">—</div>
-            <div class="trade-pct">${fmtDate(t.opened_at)}</div>
-          </div>
-        </div>`;
-      }).join('') : `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">No open trades right now</div>`}
+      ${openTrades.length ? openTrades.map(t => `
+      <div class="trade-card">
+        <div>
+          <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="trade-pnl" style="color:var(--text3)">OPEN</div>
+          <div class="trade-pct">${fmtDate(t.opened_at)}</div>
+        </div>
+      </div>`).join('') : `<div class="empty-state">No open real trades</div>`}
     </div>
     <div class="section" style="margin-top:6px">
       <div class="section-header"><div class="section-title">Quick controls</div></div>
       <div class="controls-grid">
         <div class="ctrl-card" onclick="togglePause()">
-          <div class="ctrl-icon ${d.is_paused?'green':'orange'}">${d.is_paused?'▶':'⏸'}</div>
-          <div><div class="ctrl-name">${d.is_paused?'Resume':'Pause'}</div><div class="ctrl-sub">${d.is_paused?'Paused':'Active'}</div></div>
+          <div class="ctrl-icon ${USER.is_paused?'green':'orange'}">${USER.is_paused?'▶':'⏸'}</div>
+          <div><div class="ctrl-name">${USER.is_paused?'Resume':'Pause'}</div><div class="ctrl-sub">${USER.is_paused?'Paused':'Active'}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('settings')">
-          <div class="ctrl-icon blue">$</div>
-          <div><div class="ctrl-name">Amount</div><div class="ctrl-sub">$${demo.free_balance.toFixed(0)} free</div></div>
+          <div class="ctrl-icon ${USER.has_api_key?'green':'red'}">🔑</div>
+          <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${USER.has_api_key?'Connected':'Not set'}</div></div>
         </div>
-        <div class="ctrl-card" onclick="goTo('settings')">
-          <div class="ctrl-icon ${d.has_api_key?'green':'red'}">🔑</div>
-          <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${d.has_api_key?'Connected':'Not set'}</div></div>
+        <div class="ctrl-card" onclick="goTo('demo')">
+          <div class="ctrl-icon purple">🎮</div>
+          <div><div class="ctrl-name">Demo</div><div class="ctrl-sub">$${fmtB(USER.demo.total_value)}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('trades')">
-          <div class="ctrl-icon purple">📈</div>
-          <div><div class="ctrl-name">Win rate</div><div class="ctrl-sub">${demo.win_rate}%</div></div>
+          <div class="ctrl-icon blue">📈</div>
+          <div><div class="ctrl-name">Win rate</div><div class="ctrl-sub">${s.win_rate}%</div></div>
         </div>
       </div>
       <div class="risk-card">
         <div class="risk-label">Risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${d.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${d.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${d.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">${RISK_DESCS[d.risk_mode]}</div>
+        <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
       <div class="demo-banner" onclick="goTo('demo')">
         <div class="demo-left">
           <div style="font-size:22px">🎮</div>
           <div>
-            <div class="demo-title">${d.is_demo ? 'Demo mode active' : 'Demo mode off'}</div>
-            <div class="demo-sub">Virtual balance: $${fmtB(demo.total_value)}</div>
+            <div class="demo-title">${USER.is_demo?'Demo mode active':'Demo mode off'}</div>
+            <div class="demo-sub">Virtual balance: $${fmtB(USER.demo.total_value)}</div>
           </div>
         </div>
         <div style="color:var(--purple);opacity:0.6;font-size:18px">›</div>
@@ -421,33 +381,35 @@ function renderHome() {
     </div>`;
 }
 
-// ── Render: Trades ──────────────────────────────────
+// ── Render: Trades (real trades only) ───────────────
 function renderTrades() {
-  const demo = DATA.demo;
-  const openTrades = TRADES.filter(t => t.status === 'OPEN');
-  const closedTrades = TRADES.filter(t => t.status !== 'OPEN');
+  const openTrades   = REAL_TRADES.filter(t => t.status === 'OPEN');
+  const closedTrades = REAL_TRADES.filter(t => t.status !== 'OPEN');
+  const s = STATS;
 
   return `
     <div class="section" style="margin-top:14px">
       <div class="section-header"><div class="section-title">Open positions (${openTrades.length})</div></div>
-      ${openTrades.length ? openTrades.map(t => {
-        const isLong = t.direction === 'LONG';
-        return `
-        <div class="trade-card">
-          <div><div class="trade-coin">${t.symbol} <span class="badge ${isLong?'long':'short'}">${t.direction}</span></div>
-          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div></div>
-          <div><div class="trade-pnl pos" style="color:var(--text3)">OPEN</div><div class="trade-pct">${fmtDate(t.opened_at)}</div></div>
-        </div>`;
-      }).join('') : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No open trades</div>`}
+      ${openTrades.length ? openTrades.map(t => `
+      <div class="trade-card">
+        <div>
+          <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="trade-pnl" style="color:var(--text3)">OPEN</div>
+          <div class="trade-pct">${fmtDate(t.opened_at)}</div>
+        </div>
+      </div>`).join('') : `<div class="empty-state">No open real trades</div>`}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 0">
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Realized profit</div>
-        <div style="font-size:20px;font-weight:600;color:var(--green)">+$${fmt(demo.realized_profit)}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total profit</div>
+        <div style="font-size:20px;font-weight:600;color:var(--green)">+$${fmt(s.profit)}</div>
       </div>
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Realized loss</div>
-        <div style="font-size:20px;font-weight:600;color:var(--red)">-$${fmt(demo.realized_loss)}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total loss</div>
+        <div style="font-size:20px;font-weight:600;color:var(--red)">-$${fmt(s.loss)}</div>
       </div>
     </div>
     <div class="section" style="padding-top:12px">
@@ -455,26 +417,31 @@ function renderTrades() {
       ${closedTrades.length ? `
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
         ${closedTrades.map(t => {
-          const win = parseFloat(t.profit_usd) >= 0;
-          const statusLabel = t.status === 'TP_HIT' ? 'TP' : t.status === 'SL_HIT' ? 'SL' : t.status === 'AUTO_CLOSED' ? 'AUTO' : t.status;
+          const win = parseFloat(t.profit||0) >= 0;
+          const lbl = t.status==='TP_HIT'?'TP':t.status==='SL_HIT'?'SL':t.status==='AUTO_CLOSED'?'AUTO':t.status;
           return `
           <div class="trade-hist">
-            <div><div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-            <div class="hist-date">${statusLabel} &middot; ${fmtDate(t.closed_at)}</div></div>
-            <div><div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit_usd)}</div>
-            <div class="hist-pct">${win?'+':''}${parseFloat(t.profit_pct).toFixed(2)}%</div></div>
+            <div>
+              <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+              <div class="hist-date">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
+            </div>
+            <div>
+              <div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit||0)}</div>
+              <div class="hist-pct">x${t.leverage}</div>
+            </div>
           </div>`;
         }).join('')}
-      </div>` : `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">No closed trades yet</div>`}
+      </div>` : `<div class="empty-state">No closed real trades yet</div>`}
     </div>`;
 }
 
-// ── Render: Demo ────────────────────────────────────
+// ── Render: Demo ─────────────────────────────────────
 function renderDemo() {
-  const d = DATA;
-  const demo = d.demo;
+  const demo = USER.demo;
   const ret = demo.total_return;
   const retPos = ret >= 0;
+  const openDemo   = DEMO_TRADES.filter(t => t.status === 'OPEN');
+  const closedDemo = DEMO_TRADES.filter(t => t.status !== 'OPEN');
 
   return `
     <div class="section" style="margin-top:14px">
@@ -502,30 +469,62 @@ function renderDemo() {
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s" onclick="showToast('✅ Use /resetdemo in the bot')">
+        <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s;active:background:rgba(167,139,250,0.2)"
+             onclick="openBotCommand('resetdemo')">
           <div style="font-size:13px;color:var(--purple)">🔄 Reset demo</div>
           <div style="font-size:10px;color:rgba(167,139,250,0.4);margin-top:2px">Keep history</div>
         </div>
-        <div style="flex:1;background:var(--red-dim);border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer" onclick="showToast('🗑 Use /cleardemo in the bot')">
+        <div style="flex:1;background:var(--red-dim);border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer"
+             onclick="openBotCommand('cleardemo')">
           <div style="font-size:13px;color:var(--red)">🗑 Clear all</div>
           <div style="font-size:10px;color:rgba(239,68,68,0.4);margin-top:2px">Wipe history</div>
         </div>
       </div>
-      <div class="risk-card" style="margin-bottom:16px">
+      <div class="risk-card" style="margin-bottom:8px">
         <div class="risk-label">Demo risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${d.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${d.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${d.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">${RISK_DESCS[d.risk_mode]}</div>
+        <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
+      <div class="section-header" style="padding:0 0 10px"><div class="section-title">Open demo trades (${openDemo.length})</div></div>
+      ${openDemo.length ? openDemo.slice(0,5).map(t => `
+      <div class="trade-card">
+        <div>
+          <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="trade-pnl" style="color:var(--text3)">OPEN</div>
+          <div class="trade-pct">${fmtDate(t.opened_at)}</div>
+        </div>
+      </div>`).join('') : `<div class="empty-state">No open demo trades</div>`}
+      ${closedDemo.length ? `
+      <div class="section-header" style="padding:8px 0 10px"><div class="section-title">Demo history (${closedDemo.length})</div></div>
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
+        ${closedDemo.slice(0,10).map(t => {
+          const win = parseFloat(t.profit_usd||0) >= 0;
+          const lbl = t.status==='TP_HIT'?'TP':t.status==='SL_HIT'?'SL':t.status==='AUTO_CLOSED'?'AUTO':t.status;
+          return `
+          <div class="trade-hist">
+            <div>
+              <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+              <div class="hist-date">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
+            </div>
+            <div>
+              <div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit_usd||0)}</div>
+              <div class="hist-pct">${win?'+':''}${parseFloat(t.profit_pct||0).toFixed(2)}%</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
     </div>`;
 }
 
-// ── Render: Settings ────────────────────────────────
+// ── Render: Settings ─────────────────────────────────
 function renderSettings() {
-  const u = DATA;
   return `
     <div class="section" style="margin-top:14px">
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Account</div>
@@ -535,43 +534,42 @@ function renderSettings() {
             <div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)">✓</div>
             <div style="font-size:13px;color:var(--text)">Account status</div>
           </div>
-          <span class="pill ${u.is_active?'active':'inactive'}">${u.is_active?'Active':'Inactive'}</span>
+          <span class="pill ${USER.is_active?'active':'inactive'}">${USER.is_active?'Active':'Inactive'}</span>
         </div>
         <div class="settings-row">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔑</div>
             <div style="font-size:13px;color:var(--text)">Binance API</div>
           </div>
-          <span class="pill ${u.has_api_key?'active':'paused'}">${u.has_api_key?'Connected':'Not set'}</span>
+          <span class="pill ${USER.has_api_key?'active':'paused'}">${USER.has_api_key?'Connected':'Not set'}</span>
         </div>
         <div class="settings-row">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)">🎮</div>
             <div style="font-size:13px;color:var(--text)">Demo mode</div>
           </div>
-          <span class="pill ${u.is_demo?'active':'inactive'}">${u.is_demo?'Active':'Off'}</span>
+          <span class="pill ${USER.is_demo?'active':'inactive'}">${USER.is_demo?'Active':'Off'}</span>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Trading settings</div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Risk mode</div>
       <div class="risk-card">
-        <div class="risk-label">Risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${u.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${u.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${u.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
         </div>
-        <div class="risk-desc">${RISK_DESCS[u.risk_mode]}</div>
+        <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Controls</div>
       <div class="settings-group">
         <div class="settings-row" onclick="togglePause()">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${u.is_paused?'▶':'⏸'}</div>
-            <div style="font-size:13px;color:var(--text)">${u.is_paused?'Resume trading':'Pause trading'}</div>
+            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${USER.is_paused?'▶':'⏸'}</div>
+            <div style="font-size:13px;color:var(--text)">${USER.is_paused?'Resume trading':'Pause trading'}</div>
           </div>
-          <span class="pill ${u.is_paused?'paused':'active'}">${u.is_paused?'Paused':'Active'}</span>
+          <span class="pill ${USER.is_paused?'paused':'active'}">${USER.is_paused?'Paused':'Active'}</span>
         </div>
-        <div class="settings-row" onclick="showToast('Use /disconnect in the bot')">
+        <div class="settings-row" onclick="openBotCommand('disconnect')">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)">🔌</div>
             <div style="font-size:13px;color:var(--red)">Disconnect Binance</div>
@@ -588,7 +586,7 @@ function renderSettings() {
           </div>
           <div style="font-size:16px;color:var(--text3)">›</div>
         </div>
-        <div class="settings-row" onclick="showToast('@MRRIK_support')">
+        <div class="settings-row" onclick="openBotCommand('support')">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">💬</div>
             <div style="font-size:13px;color:var(--text)">Support</div>
@@ -603,7 +601,8 @@ function renderSettings() {
     </div>`;
 }
 
-// ── Boot ────────────────────────────────────────────
+// ── Boot ─────────────────────────────────────────────
+setInterval(() => loadData(true), 60000);
 USER_ID = getUserId();
 loadData();
 </script>
