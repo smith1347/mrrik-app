@@ -300,6 +300,22 @@ function openBotCommand(cmd) {
   else showToast('Open from Telegram to use this');
 }
 
+function setRealAmount(v) {
+  USER.trade_amount = v;
+  const e = document.getElementById('amount-val');
+  if (e) e.textContent = v;
+  showToast('Trade amount set to $' + v);
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setamount_${v}`);
+}
+
+function setDemoAmount(v) {
+  USER.demo_amount = v;
+  const e = document.getElementById('demo-amt');
+  if (e) e.textContent = v;
+  showToast('Demo amount set to $' + v);
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setdemo_${v}`);
+}
+
 // ── Render: Home (real trade stats) ─────────────────
 function renderHome() {
   const s = STATS;
@@ -480,6 +496,13 @@ function renderDemo() {
           <div style="font-size:10px;color:rgba(239,68,68,0.4);margin-top:2px">Wipe history</div>
         </div>
       </div>
+      <div class="input-row" style="margin-bottom:8px;border-color:rgba(167,139,250,0.2)">
+        <div class="input-lbl" style="color:rgba(167,139,250,0.6)">Demo trade amount</div>
+        <div class="amount-display"><span class="amount-curr">$</span><span class="amount-val" id="demo-amt" style="color:var(--purple)">${USER.demo_amount || 100}</span></div>
+        <div class="amount-btns">
+          ${[10,25,50,100].map(v=>`<div class="amount-btn" onclick="setDemoAmount(${v})">$${v}</div>`).join('')}
+        </div>
+      </div>
       <div class="risk-card" style="margin-bottom:8px">
         <div class="risk-label">Demo risk mode</div>
         <div class="risk-btns">
@@ -549,6 +572,14 @@ function renderSettings() {
             <div style="font-size:13px;color:var(--text)">Demo mode</div>
           </div>
           <span class="pill ${USER.is_demo?'active':'inactive'}">${USER.is_demo?'Active':'Off'}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Trade amount</div>
+      <div class="input-row">
+        <div class="input-lbl">Amount per signal (real trades)</div>
+        <div class="amount-display"><span class="amount-curr">$</span><span class="amount-val" id="amount-val">${USER.trade_amount || '—'}</span></div>
+        <div class="amount-btns">
+          ${[5,10,25,50,100].map(v=>`<div class="amount-btn" onclick="setRealAmount(${v})">$${v}</div>`).join('')}
         </div>
       </div>
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Risk mode</div>
