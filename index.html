@@ -548,8 +548,83 @@ function renderDemo() {
 
 // ── Render: Settings ─────────────────────────────────
 function renderSettings() {
+  const sub = USER.subscription || {};
+  const dl = sub.days_left;
+  const isLifetime = sub.is_lifetime;
+  const isActive = USER.is_active;
+
+  // Subscription card styling
+  let subBg, subColor, subBorder, subIcon, subText, subSub;
+  if (!isActive) {
+    subBg = 'var(--red-dim)'; subColor = 'var(--red)'; subBorder = 'rgba(239,68,68,0.2)';
+    subIcon = '⛔️'; subText = 'Inactive'; subSub = 'Contact support to activate';
+  } else if (isLifetime) {
+    subBg = 'rgba(234,179,8,0.08)'; subColor = '#eab308'; subBorder = 'rgba(234,179,8,0.2)';
+    subIcon = '👑'; subText = 'Lifetime Access'; subSub = 'Never expires';
+  } else if (dl <= 0) {
+    subBg = 'var(--red-dim)'; subColor = 'var(--red)'; subBorder = 'rgba(239,68,68,0.2)';
+    subIcon = '🔴'; subText = 'Expired'; subSub = 'Renew to continue trading';
+  } else if (dl <= 7) {
+    subBg = 'rgba(234,179,8,0.08)'; subColor = '#eab308'; subBorder = 'rgba(234,179,8,0.2)';
+    subIcon = '⚠️'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
+  } else {
+    subBg = 'var(--green-dim)'; subColor = 'var(--green)'; subBorder = 'rgba(34,197,94,0.2)';
+    subIcon = '✅'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
+  }
+
   return `
     <div class="section" style="margin-top:14px">
+
+      <!-- Subscription card -->
+      <div style="background:${subBg};border:0.5px solid ${subBorder};border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:24px">${subIcon}</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:${subColor}">${subText}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${subSub}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Subscription</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${sub.label || '—'}</div>
+        </div>
+      </div>
+
+      <!-- Payment box -->
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">💳 Subscribe / Renew</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+          <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">1 month</div>
+            <div style="font-size:16px;font-weight:600;color:var(--orange)">$149</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">30 days</div>
+          </div>
+          <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">3 months</div>
+            <div style="font-size:16px;font-weight:600;color:var(--orange)">$347</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">Save 22%</div>
+          </div>
+          <div style="background:var(--bg3);border:0.5px solid var(--orange);border-radius:var(--radius-sm);padding:10px;text-align:center;position:relative">
+            <div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap">BEST VALUE</div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">1 year</div>
+            <div style="font-size:16px;font-weight:600;color:var(--orange)">$1,299</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">Save 64%</div>
+          </div>
+        </div>
+        <div style="background:var(--orange-dim);border:0.5px solid rgba(232,93,4,0.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text2);line-height:1.6">
+            💰 Pay with <strong style="color:var(--text)">USDT</strong> on Polygon, BNB Smart Chain, or Tron network.<br>
+            Contact support to receive wallet address and get activated.
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;background:var(--orange);border-radius:var(--radius-sm);padding:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#fff"
+               onclick="if(tg)tg.openTelegramLink('https://t.me/Leonit99');else window.open('https://t.me/Leonit99','_blank')">
+            Contact Support
+          </div>
+        </div>
+      </div>
+
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Account</div>
       <div class="settings-group">
         <div class="settings-row">
