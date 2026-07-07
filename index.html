@@ -634,10 +634,13 @@ function renderSettings() {
           </div>
           <span class="pill ${USER.is_active?'active':'inactive'}">${USER.is_active?'Active':'Inactive'}</span>
         </div>
-        <div class="settings-row">
+        <div class="settings-row" onclick="if(!USER.has_api_key){if(tg)tg.openTelegramLink('https://t.me/${BOT_USERNAME}?start=connect');else window.open('https://t.me/${BOT_USERNAME}?start=connect','_blank')}">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔑</div>
-            <div style="font-size:13px;color:var(--text)">Binance API</div>
+            <div>
+              <div style="font-size:13px;color:var(--text)">Binance API</div>
+              ${!USER.has_api_key ? '<div style="font-size:10px;color:var(--orange);margin-top:2px">Tap to connect →</div>' : ''}
+            </div>
           </div>
           <span class="pill ${USER.has_api_key?'active':'paused'}">${USER.has_api_key?'Connected':'Not set'}</span>
         </div>
