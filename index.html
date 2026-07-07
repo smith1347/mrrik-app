@@ -20,7 +20,7 @@
   body { display: flex; flex-direction: column; height: 100dvh; }
   .topbar { background: var(--bg2); border-bottom: 0.5px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .topbar-left { display: flex; align-items: center; gap: 10px; }
-  .logo { width: 34px; height: 34px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .logo { width: 34px; height: 34px; border-radius: 50%; background: var(--orange); overflow: hidden; flex-shrink: 0; }
   .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
   .topbar-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
@@ -139,7 +139,7 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="logo">MR</div>
+    <div class="logo"><img src="logo.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='MR'" /></div>
     <div>
       <div class="topbar-title">MRRIK Trading AI</div>
       <div class="topbar-sub" id="topbar-sub">Loading...</div>
@@ -617,12 +617,12 @@ function renderSettings() {
           </div>
           <div style="font-size:16px;color:var(--text3)">›</div>
         </div>
-        <div class="settings-row" onclick="openBotCommand('support')">
+        <div class="settings-row" onclick="if(tg)tg.openTelegramLink('https://t.me/Leonit99');else window.open('https://t.me/Leonit99','_blank')">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">💬</div>
             <div style="font-size:13px;color:var(--text)">Support</div>
           </div>
-          <div style="font-size:13px;color:var(--text3)">@MRRIK_support</div>
+          <div style="font-size:13px;color:var(--text3)">@Leonit99</div>
         </div>
       </div>
       <div style="text-align:center;padding:20px 0 16px">
