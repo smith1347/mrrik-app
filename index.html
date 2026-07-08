@@ -194,6 +194,8 @@ let REAL_TRADES  = []; // /api/real_trades
 let DEMO_TRADES  = []; // /api/demo_trades
 let USER_ID  = null;
 let currentTab = 'home';
+let showAllOpen   = false;  // toggle for open demo trades list
+let showAllClosed = false;  // toggle for demo history list
 
 // ── Formatters ──────────────────────────────────────
 function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
@@ -599,36 +601,92 @@ function renderDemo() {
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
       <div class="section-header" style="padding:0 0 10px"><div class="section-title">Open demo trades (${openDemo.length})</div></div>
-      ${openDemo.length ? openDemo.slice(0,5).map(t => `
-      <div class="trade-card">
-        <div>
-          <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()}</div>
-        </div>
-        <div>
-          <div class="trade-pnl" style="color:var(--text3)">OPEN</div>
-          <div class="trade-pct">${fmtDate(t.opened_at)}</div>
-        </div>
-      </div>`).join('') : `<div class="empty-state">No open demo trades</div>`}
+      ${openDemo.length ? `
+        ${openDemo.slice(0, showAllOpen ? openDemo.length : 5).map(t => {
+          const upnl      = t.upnl != null ? t.upnl : null;
+          const upnlPos   = upnl >= 0;
+          const partial   = parseFloat(t.partial_closed || 0);
+          const amount    = parseFloat(t.amount || 0);
+          const tpHit     = partial > 0;
+          const tpsArr    = Array.isArray(t.tps) ? t.tps : [];
+          // Estimate which TP was last hit based on partial_closed vs amount
+          let tpLabel = '';
+          if (tpHit && tpsArr.length > 0) {
+            const splits = tpsArr.length === 1 ? [1.0]
+              : tpsArr.length === 2 ? [0.5, 0.5]
+              : [0.4, 0.4, 0.2];
+            let cumulative = 0;
+            let lastHitIdx = 0;
+            for (let i = 0; i < splits.length && i < tpsArr.length; i++) {
+              cumulative += amount * splits[i];
+              if (partial >= cumulative - 0.01) lastHitIdx = i + 1;
+            }
+            tpLabel = `TP${lastHitIdx} hit · `;
+          }
+          return `
+          <div class="trade-card">
+            <div>
+              <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+              <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; ${tpLabel}${fmtDate(t.opened_at)}</div>
+            </div>
+            <div style="text-align:right">
+              ${upnl != null
+                ? `<div class="trade-pnl ${upnlPos?'pos':'neg'}">${upnlPos?'+':'-'}$${fmt(upnl)}</div>
+                   <div class="trade-pct" style="color:${upnlPos?'var(--green)':'var(--red)'}">${upnlPos?'▲':'▼'} live</div>`
+                : `<div class="trade-pnl" style="color:var(--text3)">OPEN</div>
+                   <div class="trade-pct">—</div>`
+              }
+            </div>
+          </div>`;
+        }).join('')}
+        ${openDemo.length > 5 ? `
+        <div style="text-align:center;padding:8px 0 4px;cursor:pointer;font-size:12px;color:var(--orange)"
+             onclick="showAllOpen=!showAllOpen;goTo('demo',true)">
+          ${showAllOpen ? '▲ Show less' : `▼ View all ${openDemo.length} open trades`}
+        </div>` : ''}
+      ` : `<div class="empty-state">No open demo trades</div>`}
       ${closedDemo.length ? `
       <div class="section-header" style="padding:8px 0 10px"><div class="section-title">Demo history (${closedDemo.length})</div></div>
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
-        ${closedDemo.slice(0,10).map(t => {
-          const win = parseFloat(t.profit_usd||0) >= 0;
-          const lbl = t.status==='TP_HIT'?'TP':t.status==='SL_HIT'?'SL':t.status==='AUTO_CLOSED'?'AUTO':t.status;
+        ${closedDemo.slice(0, showAllClosed ? closedDemo.length : 10).map(t => {
+          const profit      = parseFloat(t.profit_usd || 0);
+          const partial     = parseFloat(t.partial_closed || 0);
+          const isPos       = profit > 0;
+          const isNeg       = profit < 0;
+          // Determine label based on status + partial_closed + profit
+          let lbl, lblColor;
+          if (t.status === 'TP_HIT') {
+            lbl = '✅ Full win'; lblColor = 'var(--green)';
+          } else if (t.status === 'SL_HIT' && partial > 0 && profit > 0) {
+            lbl = '🟡 Partial win'; lblColor = '#eab308';
+          } else if ((t.status === 'SL_HIT' || t.status === 'AUTO_CLOSED') && partial > 0 && profit === 0) {
+            lbl = '🔒 Breakeven'; lblColor = '#60a5fa';
+          } else if (t.status === 'AUTO_CLOSED' && partial > 0 && profit > 0) {
+            lbl = '🟡 Partial win'; lblColor = '#eab308';
+          } else if (t.status === 'AUTO_CLOSED') {
+            lbl = '🔄 Auto-closed'; lblColor = 'var(--text3)';
+          } else {
+            lbl = '❌ Loss'; lblColor = 'var(--red)';
+          }
           return `
           <div class="trade-hist">
             <div>
               <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-              <div class="hist-date">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
+              <div class="hist-date" style="color:${lblColor}">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
             </div>
             <div>
-              <div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit_usd||0)}</div>
-              <div class="hist-pct">${win?'+':''}${parseFloat(t.profit_pct||0).toFixed(2)}%</div>
+              <div class="hist-pnl ${isPos?'win':isNeg?'loss':''}" style="${!isPos&&!isNeg?'color:#60a5fa':''}">${isPos?'+':isNeg?'-':''}$${fmt(profit)}</div>
+              <div class="hist-pct">${isPos?'+':''}${parseFloat(t.profit_pct||0).toFixed(2)}%</div>
             </div>
           </div>`;
         }).join('')}
+      </div>
+      ${closedDemo.length > 10 ? `
+      <div style="text-align:center;padding:4px 0 12px;cursor:pointer;font-size:12px;color:var(--orange)"
+           onclick="showAllClosed=!showAllClosed;goTo('demo',true)">
+        ${showAllClosed ? '▲ Show less' : `▼ View all ${closedDemo.length} trades`}
       </div>` : ''}
+      ` : ''}
     </div>`;
 }
 
