@@ -513,11 +513,40 @@ function renderDemo() {
       </div>
 
       <!-- Trade counts -->
-      <div class="demo-stats">
-        <div class="demo-stat"><div class="demo-stat-l">Wins</div><div class="demo-stat-v" style="color:var(--green)">${demo.wins}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Losses</div><div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Open</div><div class="demo-stat-v" style="color:var(--purple)">${demo.open_trades}</div></div>
-        <div class="demo-stat"><div class="demo-stat-l">Win rate</div><div class="demo-stat-v" style="color:var(--orange)">${demo.win_rate}%</div></div>
+      <!-- 4-category trade results grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="demo-stat" style="border-color:rgba(34,197,94,0.2);background:var(--green-dim)">
+          <div class="demo-stat-l" style="color:rgba(34,197,94,0.6)">✅ Full wins</div>
+          <div class="demo-stat-v" style="color:var(--green)">${demo.full_wins}</div>
+          <div style="font-size:9px;color:rgba(34,197,94,0.5);margin-top:2px">All TPs hit</div>
+        </div>
+        <div class="demo-stat" style="border-color:rgba(234,179,8,0.2);background:rgba(234,179,8,0.08)">
+          <div class="demo-stat-l" style="color:rgba(234,179,8,0.7)">🟡 Partial wins</div>
+          <div class="demo-stat-v" style="color:#eab308">${demo.partial_wins}</div>
+          <div style="font-size:9px;color:rgba(234,179,8,0.5);margin-top:2px">Some TPs hit</div>
+        </div>
+        <div class="demo-stat" style="border-color:rgba(96,165,250,0.2);background:rgba(96,165,250,0.08)">
+          <div class="demo-stat-l" style="color:rgba(96,165,250,0.6)">🔒 Breakeven</div>
+          <div class="demo-stat-v" style="color:#60a5fa">${demo.breakevens}</div>
+          <div style="font-size:9px;color:rgba(96,165,250,0.4);margin-top:2px">SL → entry</div>
+        </div>
+        <div class="demo-stat" style="border-color:rgba(239,68,68,0.2);background:var(--red-dim)">
+          <div class="demo-stat-l" style="color:rgba(239,68,68,0.6)">❌ Losses</div>
+          <div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div>
+          <div style="font-size:9px;color:rgba(239,68,68,0.4);margin-top:2px">SL before TP1</div>
+        </div>
+      </div>
+      <!-- Summary row: open + win rate -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="demo-stat">
+          <div class="demo-stat-l">Open</div>
+          <div class="demo-stat-v" style="color:var(--purple)">${demo.open_trades}</div>
+        </div>
+        <div class="demo-stat">
+          <div class="demo-stat-l">Win rate</div>
+          <div class="demo-stat-v" style="color:var(--orange)">${demo.win_rate}%</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px">Full + partial</div>
+        </div>
       </div>
 
       <!-- Realized P&L breakdown -->
