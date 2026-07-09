@@ -276,9 +276,9 @@ function goTo(tab, skipAnim=false) {
 
 // ── Helpers ─────────────────────────────────────────
 const RISK_DESCS = {
-  low:    'Close 100% at TP1 — exit immediately with guaranteed profit.',
-  medium: 'Max 3 TPs used, 40/40/20 split. Balanced profit with controlled risk.',
-  high:   'All TPs used, equal split. Maximum exposure to the full move.'
+  low:    'Closes 100% at TP1 only. Safest but captures just the first target — leaves most profit on the table when signals run further. Based on 616 signals: avg +$1.58/trade.',
+  medium: 'Uses up to 3 TPs with 40/40/20 split. SL moves to entry after TP2. Good balance of safety and profit. Based on 616 signals: avg +$6.06/trade.',
+  high:   '★ RECOMMENDED — All TPs used with equal split. SL only moves after TP2. Based on 616 real signals from this channel, High Risk generated 5x more profit than Low Risk (+$4,957 vs +$974). Avg +$8.05/trade.'
 };
 
 function setRisk(mode) {
@@ -382,7 +382,7 @@ function renderHome() {
         <div class="risk-btns">
           <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')" style="position:relative">🔴 High<span style="position:absolute;top:-7px;right:2px;background:var(--orange);color:#fff;font-size:7px;font-weight:700;padding:1px 4px;border-radius:6px">BEST</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
@@ -596,7 +596,7 @@ function renderDemo() {
         <div class="risk-btns">
           <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')" style="position:relative">🔴 High<span style="position:absolute;top:-7px;right:2px;background:var(--orange);color:#fff;font-size:7px;font-weight:700;padding:1px 4px;border-radius:6px">BEST</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
@@ -809,7 +809,7 @@ function renderSettings() {
         <div class="risk-btns">
           <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')" style="position:relative">🔴 High<span style="position:absolute;top:-7px;right:2px;background:var(--orange);color:#fff;font-size:7px;font-weight:700;padding:1px 4px;border-radius:6px">BEST</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode]}</div>
       </div>
