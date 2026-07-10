@@ -135,6 +135,63 @@
   .hist-pct { font-size: 10px; color: var(--text3); margin-top: 2px; text-align: right; }
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 0.5px solid var(--border); border-radius: 20px; padding: 8px 16px; font-size: 13px; color: var(--text); opacity: 0; transition: all 0.3s; white-space: nowrap; z-index: 999; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  /* ── 1. SKELETON LOADING ── */
+  @keyframes shimmer { 0%{background-position:-300px 0} 100%{background-position:300px 0} }
+  .skel { background: linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%); background-size: 600px 100%; animation: shimmer 1.4s infinite linear; border-radius: 6px; }
+  .skel-line { height: 12px; margin-bottom: 8px; }
+  .skel-circle { border-radius: 50%; }
+  .skel-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; }
+
+  /* ── 2. TAB SLIDE TRANSITIONS ── */
+  @keyframes slideInLeft  { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideInRight { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideOutLeft  { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-30px)} }
+  @keyframes slideOutRight { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(30px)} }
+  .slide-in-left  { animation: slideInLeft  0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+  .slide-in-right { animation: slideInRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+
+  /* ── 3. TRADE STATUS COLOR BARS ── */
+  .trade-card { position: relative; overflow: hidden; }
+  .trade-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+  .trade-card.status-open::before    { background: #60a5fa; }
+  .trade-card.status-profit::before  { background: var(--green); }
+  .trade-card.status-loss::before    { background: var(--red); }
+  .trade-card.status-neutral::before { background: var(--orange); }
+
+  /* ── 4. ANIMATED COUNTER ── */
+  @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .count-anim { animation: countUp 0.5s ease forwards; }
+
+  /* ── 5. PULL TO REFRESH ── */
+  .ptr-indicator { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70px; gap: 8px; transform: translateY(-70px); transition: transform 0.25s ease; pointer-events: none; z-index: 10; }
+  .ptr-indicator.visible { transform: translateY(0); }
+  .ptr-spinner { width: 28px; height: 28px; position: relative; }
+  .ptr-candle1 { position:absolute; left:4px; bottom:4px; width:7px; border-radius:2px; background:var(--orange); opacity:0.7; }
+  .ptr-candle2 { position:absolute; right:4px; top:4px; width:7px; border-radius:2px; background:var(--orange); }
+  .ptr-wick1 { position:absolute; left:7px; bottom:0; width:1.5px; background:var(--orange); opacity:0.7; }
+  .ptr-wick1b { position:absolute; left:7px; background:var(--orange); width:1.5px; opacity:0.7; }
+  .ptr-wick2 { position:absolute; right:7px; top:0; width:1.5px; background:var(--orange); }
+  .ptr-wick2b { position:absolute; right:7px; background:var(--orange); width:1.5px; }
+  @keyframes ptrPulse { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.15)} }
+  .ptr-indicator.loading .ptr-candle1,
+  .ptr-indicator.loading .ptr-candle2 { animation: ptrPulse 0.6s ease-in-out infinite alternate; }
+  .ptr-text { font-size: 11px; color: var(--orange); letter-spacing: 0.5px; }
+
+  /* ── 6. CONFETTI BURST ── */
+  .confetti-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  @keyframes confettiFall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+  .confetti-piece { position: absolute; width: 6px; height: 6px; border-radius: 1px; animation: confettiFall linear forwards; }
+
+  /* ── 7. TRADE EXPAND/COLLAPSE ── */
+  .trade-expand { overflow: hidden; max-height: 0; transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s; opacity: 0; border-top: 0px solid var(--border); }
+  .trade-card.expanded .trade-expand { max-height: 200px; opacity: 1; border-top: 0.5px solid var(--border); margin-top: 10px; padding-top: 10px; }
+  .expand-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .expand-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .expand-val { font-size: 12px; color: var(--text); font-weight: 500; }
+  .expand-arrow { font-size: 10px; color: var(--text3); transition: transform 0.3s; }
+  .trade-card.expanded .expand-arrow { transform: rotate(180deg); }
+  .trade-card-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+
   .screen-content { animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);} }
   .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 12px; }
@@ -150,6 +207,8 @@
 </head>
 <body>
 
+<div class="confetti-wrap" id="confettiWrap"></div>
+
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo"><img src="logo.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='MR'" /></div>
@@ -161,7 +220,19 @@
   <div class="live-dot" id="live-dot" style="background:var(--text3)"></div>
 </div>
 
-<div class="screen" id="screen">
+<div class="screen" id="screen" style="position:relative">
+  <!-- Pull to refresh indicator -->
+  <div class="ptr-indicator" id="ptrIndicator">
+    <div class="ptr-spinner">
+      <div class="ptr-candle1" style="height:14px"></div>
+      <div class="ptr-wick1" style="height:5px;bottom:14px"></div>
+      <div class="ptr-wick1b" style="height:4px;bottom:-4px"></div>
+      <div class="ptr-candle2" style="height:18px"></div>
+      <div class="ptr-wick2" style="height:4px;top:-4px"></div>
+      <div class="ptr-wick2b" style="height:5px;top:18px"></div>
+    </div>
+    <div class="ptr-text" id="ptrText">Pull to refresh</div>
+  </div>
   <div class="screen-content" id="screen-content">
     <div class="loading-wrap">
       <div class="loading-spinner"></div>
@@ -285,8 +356,7 @@ async function apiFetch(path) {
 async function loadData(silent=false) {
   if (!USER_ID) { showError('No Telegram user detected.\nOpen this app from the MRRIK bot.'); return; }
   if (!silent) {
-    document.getElementById('screen-content').innerHTML = `
-      <div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-text">Loading your data...</div></div>`;
+    document.getElementById('screen-content').innerHTML = renderSkeleton();
   }
   try {
     const [userData, statsData, realData, demoData] = await Promise.all([
@@ -336,8 +406,15 @@ function navTap(tab) {
   goTo(tab);
 }
 
+// ── Tab order for slide direction ────────────────────
+const TAB_ORDER = ['home','trades','demo','settings'];
+let prevTabIdx = 0;
+
 function goTo(tab, skipAnim=false) {
-  currentTab = tab;
+  const newIdx  = TAB_ORDER.indexOf(tab);
+  const goRight = newIdx > prevTabIdx;
+  prevTabIdx    = newIdx;
+  currentTab    = tab;
   ['home','trades','demo','settings'].forEach(x =>
     document.getElementById('nav-'+x).classList.toggle('active', x===tab));
   const subs = {home:'Auto-trading', trades:'Real trades', demo:'Demo mode', settings:'Account settings'};
@@ -345,10 +422,72 @@ function goTo(tab, skipAnim=false) {
     USER ? (USER.is_paused ? '⏸ Trading paused' : subs[tab]) : subs[tab];
   if (!USER) return;
   const content = document.getElementById('screen-content');
-  if (!skipAnim) content.style.animation = 'none';
+  // Remove old animation classes
+  content.classList.remove('slide-in-left','slide-in-right');
   content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
-  if (!skipAnim) { void content.offsetWidth; content.style.animation = ''; }
+  if (!skipAnim) {
+    void content.offsetWidth;
+    content.classList.add(goRight ? 'slide-in-left' : 'slide-in-right');
+  }
   document.getElementById('screen').scrollTop = 0;
+  // Animate counters on demo tab
+  if (tab === 'demo') setTimeout(animateDemoCounters, 50);
+}
+
+// ── Animated number counter ──────────────────────────
+function animateNumber(el, target, prefix='$', suffix='', duration=600) {
+  if (!el) return;
+  const start = 0;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (target - start) * eased;
+    el.textContent = prefix + current.toFixed(2) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = prefix + target.toFixed(2) + suffix;
+  }
+  requestAnimationFrame(step);
+}
+
+function animateDemoCounters() {
+  const demo = USER && USER.demo;
+  if (!demo) return;
+  const balEl = document.getElementById('demo-anim-bal');
+  const retEl = document.getElementById('demo-anim-ret');
+  if (balEl) animateNumber(balEl, parseFloat(demo.total_value), '$');
+  if (retEl) {
+    const ret = parseFloat(demo.total_return);
+    animateNumber(retEl, Math.abs(ret), ret >= 0 ? '+$' : '-$');
+  }
+}
+
+// ── Skeleton loader ──────────────────────────────────
+function renderSkeleton() {
+  return `
+    <div class="skel-card">
+      <div class="skel skel-line" style="width:40%;height:10px;margin-bottom:6px"></div>
+      <div class="skel skel-line" style="width:55%;height:28px;margin-bottom:6px"></div>
+      <div class="skel skel-line" style="width:65%;height:10px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin-bottom:8px">
+      ${[1,2,3].map(()=>`<div class="skel-card" style="border-radius:0;margin:0;padding:14px 8px">
+        <div class="skel skel-line" style="width:50%;margin:0 auto 6px;height:9px"></div>
+        <div class="skel skel-line" style="width:35%;margin:0 auto;height:18px"></div>
+      </div>`).join('')}
+    </div>
+    ${[1,2,3].map(()=>`<div class="skel-card" style="display:flex;align-items:center;gap:12px">
+      <div class="skel skel-circle" style="width:36px;height:36px;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div class="skel skel-line" style="width:55%;height:11px;margin-bottom:6px"></div>
+        <div class="skel skel-line" style="width:35%;height:9px"></div>
+      </div>
+      <div style="width:60px">
+        <div class="skel skel-line" style="height:11px;margin-bottom:6px"></div>
+        <div class="skel skel-line" style="width:70%;height:9px"></div>
+      </div>
+    </div>`).join('')}`;
 }
 
 // ── Helpers ─────────────────────────────────────────
@@ -546,9 +685,9 @@ function renderDemo() {
       <!-- Main balance card -->
       <div class="demo-bal-card">
         <div class="demo-bal-label">Virtual balance</div>
-        <div class="demo-bal-amount">$${fmtB(demo.total_value)}</div>
+        <div class="demo-bal-amount count-anim" id="demo-anim-bal">$${fmtB(demo.total_value)}</div>
         <div style="font-size:11px;color:rgba(167,139,250,0.5);margin-top:4px">
-          Starting: $1,000.00 &middot; ${retPos?'+':'-'}$${fmt(ret)} ${retPos?'earned':'lost'}
+          Starting: $1,000.00 &middot; <span id="demo-anim-ret">${retPos?'+':'-'}$${fmt(ret)}</span> ${retPos?'earned':'lost'}
         </div>
       </div>
 
@@ -701,18 +840,28 @@ function renderDemo() {
             tpLabel = `TP${lastHitIdx} hit · `;
           }
           return `
-          <div class="trade-card">
-            <div>
-              <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-              <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; ${tpLabel}${fmtDate(t.opened_at)}</div>
+          <div class="trade-card ${upnl > 0 ? 'status-profit' : upnl < 0 ? 'status-loss' : 'status-open'}" onclick="toggleTradeExpand(this)">
+            <div class="trade-card-header" style="width:100%;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
+                <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; ${tpLabel}${fmtDate(t.opened_at)}</div>
+              </div>
+              <div style="text-align:right;display:flex;align-items:center;gap:8px">
+                ${upnl != null
+                  ? `<div><div class="trade-pnl ${upnlPos?'pos':'neg'}">${upnlPos?'+':'-'}$${fmt(upnl)}</div>
+                     <div class="trade-pct" style="color:${upnlPos?'var(--green)':'var(--red)'}">${upnlPos?'▲':'▼'} live</div></div>`
+                  : `<div><div class="trade-pnl" style="color:var(--text3)">OPEN</div>
+                     <div class="trade-pct">—</div></div>`
+                }
+                <span class="expand-arrow">▾</span>
+              </div>
             </div>
-            <div style="text-align:right">
-              ${upnl != null
-                ? `<div class="trade-pnl ${upnlPos?'pos':'neg'}">${upnlPos?'+':'-'}$${fmt(upnl)}</div>
-                   <div class="trade-pct" style="color:${upnlPos?'var(--green)':'var(--red)'}">${upnlPos?'▲':'▼'} live</div>`
-                : `<div class="trade-pnl" style="color:var(--text3)">OPEN</div>
-                   <div class="trade-pct">—</div>`
-              }
+            <div class="trade-expand">
+              <div class="expand-row"><span class="expand-label">Entry</span><span class="expand-val">$${parseFloat(t.entry).toLocaleString()}</span></div>
+              <div class="expand-row"><span class="expand-label">Stop Loss</span><span class="expand-val" style="color:var(--red)">$${parseFloat(t.sl).toLocaleString()}</span></div>
+              ${tpsArr.length ? `<div class="expand-row"><span class="expand-label">Targets</span><span class="expand-val" style="color:var(--green);font-size:11px">${tpsArr.slice(0,3).map(tp=>('$'+parseFloat(tp).toLocaleString())).join(' · ')}${tpsArr.length>3?' …':''}</span></div>` : ''}
+              <div class="expand-row"><span class="expand-label">Leverage</span><span class="expand-val" style="color:var(--orange)">x${t.leverage}</span></div>
+              <div class="expand-row"><span class="expand-label">Amount</span><span class="expand-val">$${parseFloat(t.amount||0).toFixed(2)}</span></div>
             </div>
           </div>`;
         }).join('')}
@@ -967,6 +1116,103 @@ function renderSettings() {
       </div>
     </div>`;
 }
+
+// ── 6. CONFETTI BURST ────────────────────────────────
+function burstConfetti(x, y) {
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+  const colors = ['#e85d04','#ff6b1a','#22c55e','#fbbf24','#60a5fa','#a78bfa'];
+  for (let i = 0; i < 22; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 4 + Math.random() * 5;
+    piece.style.cssText = `
+      left:${x + (Math.random()-0.5)*100}px;
+      top:${y}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${size}px; height:${size}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${0.9+Math.random()*0.7}s;
+      animation-delay:${Math.random()*0.15}s;
+    `;
+    wrap.appendChild(piece);
+    setTimeout(() => piece.remove(), 1800);
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const hist = e.target.closest('.trade-hist');
+  if (!hist) return;
+  const pnl = hist.querySelector('.hist-pnl');
+  if (pnl && pnl.classList.contains('win')) {
+    const rect = hist.getBoundingClientRect();
+    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+});
+
+// ── 7. TRADE EXPAND / COLLAPSE ───────────────────────
+function toggleTradeExpand(card) {
+  card.classList.toggle('expanded');
+}
+
+// ── 5. PULL TO REFRESH ───────────────────────────────
+(function() {
+  const screen  = document.getElementById('screen');
+  const ptr     = document.getElementById('ptrIndicator');
+  const ptrText = document.getElementById('ptrText');
+  if (!screen || !ptr) return;
+  let startY = 0, pulling = false, triggered = false;
+  const THRESHOLD = 65;
+
+  screen.addEventListener('touchstart', e => {
+    if (screen.scrollTop === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true; triggered = false;
+    }
+  }, { passive: true });
+
+  screen.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 0 && screen.scrollTop === 0) {
+      const pull = Math.min(dy * 0.45, THRESHOLD + 10);
+      ptr.style.transform = `translateY(${pull - 70}px)`;
+      ptr.classList.add('visible');
+      ptr.classList.remove('loading');
+      triggered = dy > THRESHOLD * 1.8;
+      ptrText.textContent = triggered ? 'Release to refresh' : 'Pull to refresh';
+    }
+  }, { passive: true });
+
+  screen.addEventListener('touchend', () => {
+    pulling = false;
+    ptr.style.transform = '';
+    if (triggered) {
+      ptr.classList.add('loading');
+      ptrText.textContent = 'Refreshing...';
+      setTimeout(() => { ptr.classList.remove('visible','loading'); loadData(true); }, 800);
+    } else {
+      ptr.classList.remove('visible');
+    }
+  }, { passive: true });
+})();
+
+// ── TAB SWIPE GESTURE ────────────────────────────────
+(function() {
+  const screen = document.getElementById('screen');
+  if (!screen) return;
+  let sx = 0, sy = 0;
+  screen.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
+  screen.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      const idx = TAB_ORDER.indexOf(currentTab);
+      if (dx < 0 && idx < TAB_ORDER.length-1) navTap(TAB_ORDER[idx+1]);
+      if (dx > 0 && idx > 0)                  navTap(TAB_ORDER[idx-1]);
+    }
+  }, { passive:true });
+})();
 
 // ── Boot ─────────────────────────────────────────────
 setInterval(() => loadData(true), 60000);
