@@ -82,11 +82,24 @@
   .demo-title { font-size: 13px; font-weight: 500; color: var(--purple); }
   .demo-sub { font-size: 11px; color: rgba(167,139,250,0.5); margin-top: 1px; }
   .bottom-nav { background: var(--bg2); border-top: 0.5px solid var(--border); display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); flex-shrink: 0; }
-  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; opacity: 0.35; transition: opacity 0.15s; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; opacity: 0.35; transition: opacity 0.2s; position: relative; -webkit-tap-highlight-color: transparent; }
   .nav-item.active { opacity: 1; }
-  .nav-icon { font-size: 22px; }
-  .nav-label { font-size: 9px; color: var(--text3); font-weight: 500; }
+  .nav-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+  .nav-icon svg { transition: transform 0.2s ease; }
+  .nav-item.active .nav-icon svg .nav-svg-stroke { stroke: var(--orange); }
+  .nav-item.active .nav-icon svg .nav-svg-fill { fill: var(--orange); }
+  .nav-item:not(.active) .nav-icon svg .nav-svg-stroke { stroke: #555; }
+  .nav-item:not(.active) .nav-icon svg .nav-svg-fill { fill: #555; }
+  .nav-label { font-size: 9px; color: #555; font-weight: 500; transition: color 0.2s; }
   .nav-item.active .nav-label { color: var(--orange); }
+  /* Tap bounce animation */
+  @keyframes navBounce { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 70%{transform:scale(0.92)} 100%{transform:scale(1)} }
+  @keyframes navRipple { 0%{transform:scale(0.3);opacity:0.5} 100%{transform:scale(2.2);opacity:0} }
+  .nav-icon.bouncing svg { animation: navBounce 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  .nav-ripple { position: absolute; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, rgba(232,93,4,0.35) 0%, rgba(232,93,4,0) 70%); pointer-events: none; animation: navRipple 0.5s ease-out forwards; top: 50%; left: 50%; margin-top: -18px; margin-left: -18px; z-index: 0; }
+  /* Active indicator dot */
+  .nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--orange); margin-top: 1px; opacity: 0; transition: opacity 0.2s; box-shadow: 0 0 6px rgba(232,93,4,0.6); }
+  .nav-item.active .nav-dot { opacity: 1; }
   .pill { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
   .pill.active { background: var(--green-dim); color: var(--green); border: 0.5px solid rgba(34,197,94,0.2); }
   .pill.paused { background: rgba(234,179,8,0.12); color: #eab308; border: 0.5px solid rgba(234,179,8,0.2); }
@@ -158,17 +171,63 @@
 </div>
 
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="goTo('home')" id="nav-home">
-    <div class="nav-icon">🏠</div><div class="nav-label">Home</div>
+  <div class="nav-item active" onclick="navTap('home')" id="nav-home">
+    <div class="nav-icon" id="navicon-home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <!-- Candlestick chart icon (matches MRRIK logo) -->
+        <rect class="nav-svg-fill" x="4" y="8" width="4" height="10" rx="1" opacity="0.7"/>
+        <line class="nav-svg-stroke" x1="6" y1="5" x2="6" y2="8" stroke-width="1.5" stroke-linecap="round"/>
+        <line class="nav-svg-stroke" x1="6" y1="18" x2="6" y2="21" stroke-width="1.5" stroke-linecap="round"/>
+        <rect class="nav-svg-fill" x="13" y="4" width="4" height="12" rx="1"/>
+        <line class="nav-svg-stroke" x1="15" y1="2" x2="15" y2="4" stroke-width="1.5" stroke-linecap="round"/>
+        <line class="nav-svg-stroke" x1="15" y1="16" x2="15" y2="19" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Trend line -->
+        <polyline class="nav-svg-stroke" points="1,16 8,11 14,14 22,6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" stroke-dasharray="2 2"/>
+      </svg>
+    </div>
+    <div class="nav-label">Home</div>
+    <div class="nav-dot"></div>
   </div>
-  <div class="nav-item" onclick="goTo('trades')" id="nav-trades">
-    <div class="nav-icon">📊</div><div class="nav-label">Trades</div>
+  <div class="nav-item" onclick="navTap('trades')" id="nav-trades">
+    <div class="nav-icon" id="navicon-trades">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <!-- Trade list icon -->
+        <rect class="nav-svg-stroke" x="3" y="3" width="18" height="18" rx="3" stroke-width="1.5"/>
+        <line class="nav-svg-stroke" x1="7" y1="8" x2="17" y2="8" stroke-width="1.5" stroke-linecap="round"/>
+        <line class="nav-svg-stroke" x1="7" y1="12" x2="14" y2="12" stroke-width="1.5" stroke-linecap="round"/>
+        <line class="nav-svg-stroke" x1="7" y1="16" x2="11" y2="16" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Small arrow indicator -->
+        <polyline class="nav-svg-stroke" points="16,14 18,12 16,10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="nav-label">Trades</div>
+    <div class="nav-dot"></div>
   </div>
-  <div class="nav-item" onclick="goTo('demo')" id="nav-demo">
-    <div class="nav-icon">🎮</div><div class="nav-label">Demo</div>
+  <div class="nav-item" onclick="navTap('demo')" id="nav-demo">
+    <div class="nav-icon" id="navicon-demo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <!-- Monitor with chart -->
+        <rect class="nav-svg-stroke" x="2" y="3" width="20" height="14" rx="2.5" stroke-width="1.5"/>
+        <line class="nav-svg-stroke" x1="8" y1="20" x2="16" y2="20" stroke-width="1.5" stroke-linecap="round"/>
+        <line class="nav-svg-stroke" x1="12" y1="17" x2="12" y2="20" stroke-width="1.5"/>
+        <!-- Chart line inside monitor -->
+        <polyline class="nav-svg-stroke" points="6,13 9,9 13,11 18,6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle class="nav-svg-fill" cx="18" cy="6" r="1.5"/>
+      </svg>
+    </div>
+    <div class="nav-label">Demo</div>
+    <div class="nav-dot"></div>
   </div>
-  <div class="nav-item" onclick="goTo('settings')" id="nav-settings">
-    <div class="nav-icon">⚙️</div><div class="nav-label">Settings</div>
+  <div class="nav-item" onclick="navTap('settings')" id="nav-settings">
+    <div class="nav-icon" id="navicon-settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <!-- Gear icon -->
+        <circle class="nav-svg-stroke" cx="12" cy="12" r="3" stroke-width="1.5"/>
+        <path class="nav-svg-stroke" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="nav-label">Settings</div>
+    <div class="nav-dot"></div>
   </div>
 </div>
 
@@ -259,6 +318,24 @@ function showError(msg, retry=false) {
 }
 
 // ── Navigation ──────────────────────────────────────
+function navTap(tab) {
+  // Bounce the icon
+  const icon = document.getElementById('navicon-' + tab);
+  if (icon) {
+    icon.classList.remove('bouncing');
+    void icon.offsetWidth; // force reflow
+    icon.classList.add('bouncing');
+    setTimeout(() => icon.classList.remove('bouncing'), 400);
+
+    // Ripple effect
+    const ripple = document.createElement('div');
+    ripple.className = 'nav-ripple';
+    icon.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  }
+  goTo(tab);
+}
+
 function goTo(tab, skipAnim=false) {
   currentTab = tab;
   ['home','trades','demo','settings'].forEach(x =>
