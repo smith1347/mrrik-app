@@ -823,19 +823,32 @@ function renderDemo() {
           const amount    = parseFloat(t.amount || 0);
           const tpHit     = partial > 0;
           const tpsArr    = Array.isArray(t.tps) ? t.tps : [];
-          // Estimate which TP was last hit based on partial_closed vs amount
+          const riskMode  = t.risk_mode || 'high';
+          // Calculate splits using the trade's actual risk_mode (mirrors get_splits in trader.py)
+          function getSplits(numTps, mode) {
+            if (numTps === 0) return [];
+            if (numTps === 1) return [1.0];
+            if (mode === 'low')    return [1.0];
+            if (mode === 'medium') return numTps === 2 ? [0.5,0.5] : [0.4,0.4,0.2];
+            // high — equal split across all TPs
+            if (numTps === 2) return [0.5,0.5];
+            if (numTps === 3) return [0.4,0.4,0.2];
+            if (numTps === 4) return [0.25,0.25,0.25,0.25];
+            if (numTps === 5) return [0.2,0.2,0.2,0.2,0.2];
+            const base = Math.floor(100/numTps)/100;
+            const arr  = Array(numTps).fill(base);
+            arr[numTps-1] = Math.round((1.0 - base*(numTps-1))*100)/100;
+            return arr;
+          }
           let tpLabel = '';
           if (tpHit && tpsArr.length > 0) {
-            const splits = tpsArr.length === 1 ? [1.0]
-              : tpsArr.length === 2 ? [0.5, 0.5]
-              : [0.4, 0.4, 0.2];
-            let cumulative = 0;
-            let lastHitIdx = 0;
+            const splits = getSplits(tpsArr.length, riskMode);
+            let cumulative = 0, lastHitIdx = 0;
             for (let i = 0; i < splits.length && i < tpsArr.length; i++) {
               cumulative += amount * splits[i];
               if (partial >= cumulative - 0.01) lastHitIdx = i + 1;
             }
-            tpLabel = `TP${lastHitIdx} hit · `;
+            tpLabel = lastHitIdx > 0 ? `TP${lastHitIdx} hit · ` : '';
           }
           return `
           <div class="trade-card ${upnl > 0 ? 'status-profit' : upnl < 0 ? 'status-loss' : 'status-open'}" >
