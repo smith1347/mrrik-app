@@ -315,7 +315,9 @@ function getUserId() {
 let USER     = null;   // /api/user response
 let STATS    = null;   // /api/stats  — real trade stats
 let REAL_TRADES  = []; // /api/real_trades
-let DEMO_TRADES  = []; // /api/demo_trades
+let DEMO_TRADES  = [];
+let OPEN_DEMO    = [];   // all open demo trades (no limit)
+let CLOSED_DEMO  = [];   // recent closed demo trades // /api/demo_trades
 let USER_ID  = null;
 let currentTab = 'home';
 let showAllOpen   = false;  // toggle for open demo trades list
@@ -359,10 +361,12 @@ async function loadData(silent=false) {
       apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=30`),
       apiFetch(`/api/demo_trades?user_id=${USER_ID}&limit=30`),
     ]);
-    USER        = userData;
-    STATS       = statsData;
-    REAL_TRADES = realData.trades  || [];
-    DEMO_TRADES = demoData.trades  || [];
+    USER         = userData;
+    STATS        = statsData;
+    REAL_TRADES  = realData.trades        || [];
+    DEMO_TRADES  = demoData.trades        || [];   // backwards compat (open+closed)
+    OPEN_DEMO    = demoData.open_trades   || DEMO_TRADES.filter(t => t.status === 'OPEN');
+    CLOSED_DEMO  = demoData.closed_trades || DEMO_TRADES.filter(t => t.status !== 'OPEN');
     document.getElementById('live-dot').style.background = 'var(--green)';
     goTo(currentTab, true);
   } catch(e) {
@@ -670,8 +674,8 @@ function renderDemo() {
   const retPos = ret >= 0;
   const upnl = demo.unrealized_pnl || 0;
   const upnlPos = upnl >= 0;
-  const openDemo   = DEMO_TRADES.filter(t => t.status === 'OPEN');
-  const closedDemo = DEMO_TRADES.filter(t => t.status !== 'OPEN');
+  const openDemo   = OPEN_DEMO;    // all open trades — no limit, always complete
+  const closedDemo = CLOSED_DEMO;  // recent closed trades
 
   return `
     <div class="section" style="margin-top:14px">
