@@ -532,6 +532,25 @@ function setDemoAmount(v) {
   if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setdemo_${v}`);
 }
 
+function toggleDemo() {
+  if (USER.is_demo) {
+    if (!confirm('Stop demo mode? Your trade history will be preserved.')) return;
+    if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=stopdemo`);
+    else showToast('Open from Telegram to use this');
+    showToast('Stopping demo mode...');
+    USER.is_demo = false;
+    document.querySelector('[onclick="toggleDemo()"] .pill').textContent = 'Off';
+    document.querySelector('[onclick="toggleDemo()"] .pill').className = 'pill inactive';
+  } else {
+    if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=demo`);
+    else showToast('Open from Telegram to use this');
+    showToast('Starting demo mode...');
+    USER.is_demo = true;
+    document.querySelector('[onclick="toggleDemo()"] .pill').textContent = 'Active';
+    document.querySelector('[onclick="toggleDemo()"] .pill').className = 'pill active';
+  }
+}
+
 // ── Render: Home (real trade stats) ─────────────────
 function renderHome() {
   const s = STATS;
@@ -1018,10 +1037,13 @@ function renderSettings() {
           </div>
           <span class="pill ${USER.has_api_key?'active':'paused'}">${USER.has_api_key?'Connected':'Not set'}</span>
         </div>
-        <div class="settings-row">
+        <div class="settings-row" onclick="toggleDemo()" style="cursor:pointer">
           <div class="settings-row-left">
             <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)">🎮</div>
-            <div style="font-size:13px;color:var(--text)">Demo mode</div>
+            <div>
+              <div style="font-size:13px;color:var(--text)">Demo mode</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">${USER.is_demo?'Tap to stop demo':'Tap to start demo'}</div>
+            </div>
           </div>
           <span class="pill ${USER.is_demo?'active':'inactive'}">${USER.is_demo?'Active':'Off'}</span>
         </div>
