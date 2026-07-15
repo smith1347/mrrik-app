@@ -490,9 +490,9 @@ function renderSkeleton() {
 
 // ── Helpers ─────────────────────────────────────────
 const RISK_DESCS = {
-  low:    'Closes 100% at TP1 only. Safest but captures just the first target — leaves most profit on the table when signals run further. Based on 616 signals: avg +$1.58/trade.',
-  medium: 'Uses up to 3 TPs with 40/40/20 split. SL moves to entry after TP2. Good balance of safety and profit. Based on 616 signals: avg +$6.06/trade.',
-  high:   '★ RECOMMENDED — All TPs used with equal split. SL only moves after TP2. Based on 616 real signals from this channel, High Risk generated 5x more profit than Low Risk (+$4,957 vs +$974). Avg +$8.05/trade.'
+  low:    'Closes 50% at TP1, 50% at TP2. After TP1 hits, SL moves to entry — the remaining 50% becomes a free trade with zero risk. Simple and protected.',
+  medium: 'TP1 hit = free trade (SL moves to entry, no loss possible). Real profit starts at TP2 (50%) and TP3 (50%). Best balance of protection and profit on 3-TP signals.',
+  high:   '★ RECOMMENDED — For signals with 3+ TPs: TP1 and TP2 are free trade triggers (SL locks in progressively). All profit concentrated at TP3–5. Maximum return on strong moves.'
 };
 
 function setRisk(mode) {
@@ -847,17 +847,16 @@ function renderDemo() {
           function getSplits(numTps, mode) {
             if (numTps === 0) return [];
             if (numTps === 1) return [1.0];
-            if (mode === 'low')    return [1.0];
-            if (mode === 'medium') return numTps === 2 ? [0.5,0.5] : [0.4,0.4,0.2];
-            // high — equal split across all TPs
+            // LOW: 1TP=100%, 2+TPs=50/50
+            if (mode === 'low') return numTps >= 2 ? [0.5,0.5] : [1.0];
+            // MEDIUM: 2TPs=50/50, 3+TPs=0/50/50
+            if (mode === 'medium') return numTps === 2 ? [0.5,0.5] : [0.0,0.5,0.5];
+            // HIGH: 2=50/50, 3=0/50/50, 4=0/0/50/50, 5=0/0/50/25/25
             if (numTps === 2) return [0.5,0.5];
-            if (numTps === 3) return [0.4,0.4,0.2];
-            if (numTps === 4) return [0.25,0.25,0.25,0.25];
-            if (numTps === 5) return [0.2,0.2,0.2,0.2,0.2];
-            const base = Math.floor(100/numTps)/100;
-            const arr  = Array(numTps).fill(base);
-            arr[numTps-1] = Math.round((1.0 - base*(numTps-1))*100)/100;
-            return arr;
+            if (numTps === 3) return [0.0,0.5,0.5];
+            if (numTps === 4) return [0.0,0.0,0.5,0.5];
+            if (numTps === 5) return [0.0,0.0,0.5,0.25,0.25];
+            return [0.0,0.0,0.5,0.25,0.25]; // 6+ TPs
           }
           let tpLabel = '';
           if (tpHit && tpsArr.length > 0) {
