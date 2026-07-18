@@ -758,17 +758,17 @@ function renderDemo() {
         <div class="demo-stat" style="border-color:rgba(234,179,8,0.2);background:rgba(234,179,8,0.08)">
           <div class="demo-stat-l" style="color:rgba(234,179,8,0.7)">🟡 Partial wins</div>
           <div class="demo-stat-v" style="color:#eab308">${demo.partial_wins}</div>
-          <div style="font-size:9px;color:rgba(234,179,8,0.5);margin-top:2px">Some TPs hit</div>
+          <div style="font-size:9px;color:rgba(234,179,8,0.5);margin-top:2px">Closed in profit</div>
         </div>
         <div class="demo-stat" style="border-color:rgba(96,165,250,0.2);background:rgba(96,165,250,0.08)">
           <div class="demo-stat-l" style="color:rgba(96,165,250,0.6)">🔒 Breakeven</div>
           <div class="demo-stat-v" style="color:#60a5fa">${demo.breakevens}</div>
-          <div style="font-size:9px;color:rgba(96,165,250,0.4);margin-top:2px">SL → entry</div>
+          <div style="font-size:9px;color:rgba(96,165,250,0.4);margin-top:2px">Closed at net zero</div>
         </div>
         <div class="demo-stat" style="border-color:rgba(239,68,68,0.2);background:var(--red-dim)">
           <div class="demo-stat-l" style="color:rgba(239,68,68,0.6)">❌ Losses</div>
           <div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div>
-          <div style="font-size:9px;color:rgba(239,68,68,0.4);margin-top:2px">SL before TP1</div>
+          <div style="font-size:9px;color:rgba(239,68,68,0.4);margin-top:2px">Closed at a loss</div>
         </div>
       </div>
       <!-- Summary row: open + win rate -->
@@ -899,20 +899,26 @@ function renderDemo() {
         ${closedDemo.slice(0, showAllClosed ? closedDemo.length : 10).map(t => {
           const profit      = parseFloat(t.profit_usd || 0);
           const partial     = parseFloat(t.partial_closed || 0);
-          const isPos       = profit > 0;
-          const isNeg       = profit < 0;
-          // Determine label based on status + partial_closed + profit
+          // Same epsilon as the label below, so the amount's colour and sign
+          // never contradict the badge (a residue value like 5e-17 must render
+          // as a neutral $0.00 breakeven, not a green +$0.00).
+          const isPos       = profit >  0.005;
+          const isNeg       = profit < -0.005;
+          // Classification must mirror the backend exactly:
+          //   full win  = all TPs hit (TP_HIT)
+          //   partial   = closed with net profit  (> +0.005)
+          //   breakeven = closed at net zero      (within +/- 0.005)
+          //   loss      = closed with net loss    (< -0.005)
+          // Uses an epsilon (not ==0) because profit_usd accumulates across
+          // legs and float addition leaves sub-cent residue.
+          const EPS = 0.005;
           let lbl, lblColor;
           if (t.status === 'TP_HIT') {
             lbl = '✅ Full win'; lblColor = 'var(--green)';
-          } else if (t.status === 'SL_HIT' && partial > 0 && profit > 0) {
+          } else if (profit > EPS) {
             lbl = '🟡 Partial win'; lblColor = '#eab308';
-          } else if ((t.status === 'SL_HIT' || t.status === 'AUTO_CLOSED') && partial > 0 && profit === 0) {
+          } else if (profit >= -EPS) {
             lbl = '🔒 Breakeven'; lblColor = '#60a5fa';
-          } else if (t.status === 'AUTO_CLOSED' && partial > 0 && profit > 0) {
-            lbl = '🟡 Partial win'; lblColor = '#eab308';
-          } else if (t.status === 'AUTO_CLOSED') {
-            lbl = '🔄 Auto-closed'; lblColor = 'var(--text3)';
           } else {
             lbl = '❌ Loss'; lblColor = 'var(--red)';
           }
@@ -1000,7 +1006,7 @@ function renderSettings() {
             <div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap">BEST VALUE</div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">1 year</div>
             <div style="font-size:16px;font-weight:600;color:var(--orange)">$1,299</div>
-            <div style="font-size:9px;color:var(--text3);margin-top:2px">Save 64%</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">Save 27%</div>
           </div>
         </div>
         <div style="background:var(--orange-dim);border:0.5px solid rgba(232,93,4,0.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
