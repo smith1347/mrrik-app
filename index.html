@@ -704,7 +704,7 @@ function renderDemo() {
         <div class="demo-bal-label">Virtual balance</div>
         <div class="demo-bal-amount count-anim" id="demo-anim-bal">$${fmtB(demo.total_value)}</div>
         <div style="font-size:11px;color:rgba(167,139,250,0.5);margin-top:4px">
-          Starting: $1,000.00 &middot; <span id="demo-anim-ret">${retPos?'+':'-'}$${fmt(ret)}</span> ${retPos?'earned':'lost'}
+          Starting: $${fmtB(demo.starting_balance||1000)} &middot; <span id="demo-anim-ret">${retPos?'+':'-'}$${fmt(ret)}</span> ${retPos?'earned':'lost'}
         </div>
       </div>
 
@@ -717,7 +717,7 @@ function renderDemo() {
         <div style="display:flex;flex-direction:column;gap:7px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div style="font-size:12px;color:var(--text3)">💰 Starting balance</div>
-            <div style="font-size:12px;color:var(--text);font-weight:500">$1,000.00</div>
+            <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.starting_balance||1000)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div style="font-size:12px;color:var(--text3)">🔓 Free balance</div>
