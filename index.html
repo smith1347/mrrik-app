@@ -112,6 +112,7 @@
   .amount-btns { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
   .amount-btn { padding: 7px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.15s; }
   .amount-btn:active { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
+  .amount-btn.active { background: rgba(167,139,250,0.15); border-color: var(--purple); color: var(--purple); font-weight: 600; }
   .demo-bal-card { background: var(--purple-dim); border: 0.5px solid rgba(167,139,250,0.25); border-radius: var(--radius); padding: 16px; margin-bottom: 8px; text-align: center; }
   .demo-bal-label { font-size: 11px; color: rgba(167,139,250,0.6); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
   .demo-bal-amount { font-size: 28px; font-weight: 600; color: var(--purple); }
@@ -524,6 +525,18 @@ function setRealAmount(v) {
   if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setamount_${v}`);
 }
 
+function setDemoStart(v) {
+  const cur = parseFloat((USER && USER.demo && USER.demo.starting_balance) || 1000);
+  if (cur === v) { showToast('Already $' + v.toLocaleString('en-US')); return; }
+  if (!confirm(
+        'Set demo starting capital to $' + v.toLocaleString('en-US') + '?\n\n' +
+        'This RESETS your demo account and clears all demo trade history, so your ' +
+        'statistics are measured from a single starting point.')) return;
+  showToast('Setting capital to $' + v.toLocaleString('en-US') + '...');
+  if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=demostart_${v}`);
+  else showToast('Open from Telegram to use this');
+}
+
 function setDemoAmount(v) {
   USER.demo_amount = v;
   const e = document.getElementById('demo-amt');
@@ -815,6 +828,16 @@ function renderDemo() {
              onclick="openBotCommand('cleardemo')">
           <div style="font-size:13px;color:var(--red)">🗑 Clear all</div>
           <div style="font-size:10px;color:rgba(239,68,68,0.4);margin-top:2px">Wipe history</div>
+        </div>
+      </div>
+      <div class="input-row" style="margin-bottom:8px;border-color:rgba(167,139,250,0.2)">
+        <div class="input-lbl" style="color:rgba(167,139,250,0.6)">Demo starting capital</div>
+        <div class="amount-display"><span class="amount-curr">$</span><span class="amount-val" id="demo-start-val" style="color:var(--purple)">${fmtB(demo.starting_balance || 1000)}</span></div>
+        <div class="amount-btns">
+          ${[1000,5000,10000].map(v=>`<div class="amount-btn ${parseFloat(demo.starting_balance||1000)===v?'active':''}" onclick="setDemoStart(${v})">$${v.toLocaleString('en-US')}</div>`).join('')}
+        </div>
+        <div style="font-size:10px;color:rgba(167,139,250,0.45);margin-top:8px;line-height:1.4">
+          Changing this resets your demo and clears history, so every statistic is measured from one starting point.
         </div>
       </div>
       <div class="input-row" style="margin-bottom:8px;border-color:rgba(167,139,250,0.2)">
