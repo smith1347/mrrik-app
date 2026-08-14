@@ -506,6 +506,20 @@ function setRisk(mode) {
   if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=setrisk_${mode}`);
 }
 
+// MANUAL CLOSE: delete this function to remove the feature
+function closeDemoTrade(id, symbol) {
+  const go = () => {
+    if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=closetrade_${id}`);
+  };
+  const msg = `Close your ${symbol} demo trade at the current market price?`;
+  // Telegram's native confirm looks better in-app; fall back to the browser one.
+  if (tg && tg.showConfirm) {
+    tg.showConfirm(msg, ok => { if (ok) go(); });
+  } else if (confirm(msg)) {
+    go();
+  }
+}
+
 function togglePause() {
   USER.is_paused = !USER.is_paused;
   const cmd = USER.is_paused ? 'pause' : 'resume';
@@ -877,19 +891,25 @@ function renderDemo() {
           const tpsArr    = Array.isArray(t.tps) ? t.tps : [];
           const riskMode  = t.risk_mode || 'high';
           // Calculate splits using the trade's actual risk_mode (mirrors get_splits in trader.py)
+          // Mirrors get_splits() in trader.py — keep in sync if the strategy changes.
           function getSplits(numTps, mode) {
             if (numTps === 0) return [];
             if (numTps === 1) return [1.0];
-            // LOW: 1TP=100%, 2+TPs=50/50
-            if (mode === 'low') return numTps >= 2 ? [0.5,0.5] : [1.0];
-            // MEDIUM: 2TPs=50/50, 3+TPs=0/50/50
-            if (mode === 'medium') return numTps === 2 ? [0.5,0.5] : [0.0,0.5,0.5];
-            // HIGH: 2=50/50, 3=0/50/50, 4=0/0/50/50, 5=0/0/50/25/25
-            if (numTps === 2) return [0.5,0.5];
-            if (numTps === 3) return [0.0,0.5,0.5];
-            if (numTps === 4) return [0.0,0.0,0.5,0.5];
-            if (numTps === 5) return [0.0,0.0,0.5,0.25,0.25];
-            return [0.0,0.0,0.5,0.25,0.25]; // 6+ TPs
+            const n = Math.min(numTps, 5);
+            if (mode === 'low') {
+              const t = {2:[0.60,0.40], 3:[0.60,0.30,0.10],
+                         4:[0.40,0.30,0.20,0.10], 5:[0.40,0.30,0.20,0.00,0.10]};
+              return t[n] || t[5];
+            }
+            if (mode === 'medium') {
+              const t = {2:[0.30,0.70], 3:[0.30,0.30,0.40],
+                         4:[0.40,0.30,0.20,0.10], 5:[0.10,0.50,0.30,0.00,0.10]};
+              return t[n] || t[5];
+            }
+            if (mode === 'contrarian') return [1.0];   // CONTRARIAN: single target
+            const t = {2:[0.20,0.80], 3:[0.20,0.40,0.40],
+                       4:[0.10,0.40,0.40,0.10], 5:[0.00,0.50,0.20,0.20,0.10]};
+            return t[n] || t[5];
           }
           let tpLabel = '';
           if (tpHit && tpsArr.length > 0) {
@@ -917,7 +937,14 @@ function renderDemo() {
                 }
               </div>
             </div>
-
+            <!-- MANUAL CLOSE: delete this block to remove the feature -->
+            ${t.id != null ? `
+            <div style="display:flex;justify-content:flex-end;padding:8px 0 0;border-top:0.5px solid var(--border);margin-top:8px">
+              <button onclick="closeDemoTrade(${t.id},'${String(t.symbol).replace(/'/g,"")}')"
+                      style="background:transparent;border:0.5px solid var(--red);color:var(--red);
+                             padding:5px 14px;border-radius:var(--radius-sm);font-size:11px;
+                             font-weight:600;cursor:pointer">Close trade</button>
+            </div>` : ''}
           </div>`;
         }).join('')}
         ${openDemo.length > 5 ? `
@@ -959,7 +986,7 @@ function renderDemo() {
           <div class="trade-hist">
             <div>
               <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-              <div class="hist-date" style="color:${lblColor}">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
+              <div class="hist-date" style="color:${lblColor}">${lbl}${Number(t.closed_manually) === 1 ? ' <span style="color:var(--text3)">· closed manually</span>' : ''} &middot; ${fmtDate(t.closed_at)}</div>
             </div>
             <div>
               <div class="hist-pnl ${isPos?'win':isNeg?'loss':''}" style="${!isPos&&!isNeg?'color:#60a5fa':''}">${isPos?'+':isNeg?'-':''}$${fmt(profit)}</div>
