@@ -507,16 +507,34 @@ function setRisk(mode) {
 }
 
 // MANUAL CLOSE: delete this function to remove the feature
-function closeDemoTrade(id, symbol) {
-  const go = () => {
-    if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=closetrade_${id}`);
-  };
+async function closeDemoTrade(id, symbol) {
   const msg = `Close your ${symbol} demo trade at the current market price?`;
-  // Telegram's native confirm looks better in-app; fall back to the browser one.
-  if (tg && tg.showConfirm) {
-    tg.showConfirm(msg, ok => { if (ok) go(); });
-  } else if (confirm(msg)) {
-    go();
+  const confirmed = await new Promise(resolve => {
+    if (tg && tg.showConfirm) tg.showConfirm(msg, ok => resolve(!!ok));
+    else resolve(confirm(msg));
+  });
+  if (!confirmed) return;
+
+  showToast('Closing…');
+  try {
+    const res = await fetch(`${API_BASE}/api/close_demo_trade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trade_id: id,
+        init_data: (tg && tg.initData) || ''
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      showToast(data.error || 'Could not close that trade');
+      return;
+    }
+    const net = Number(data.trade_net || 0);
+    showToast(`${symbol} closed · ${net >= 0 ? '+' : '-'}$${Math.abs(net).toFixed(2)}`);
+    await loadData(true);     // refreshes balances, open trades and history
+  } catch (e) {
+    showToast('Network error — please try again');
   }
 }
 
