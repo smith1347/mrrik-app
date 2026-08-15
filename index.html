@@ -323,6 +323,10 @@ let USER_ID  = null;
 let currentTab = 'home';
 let showAllOpen   = false;  // toggle for open demo trades list
 let showAllClosed = false;  // toggle for demo history list
+// Demo history sort/filter. Kept in module state so the choice survives the
+// re-render that goTo() triggers.
+let histSort   = 'newest';  // newest | oldest | profit | loss
+let histFilter = 'all';     // all | wins | losses
 
 // ── Formatters ──────────────────────────────────────
 function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
@@ -360,7 +364,7 @@ async function loadData(silent=false) {
       apiFetch(`/api/user?user_id=${USER_ID}`),
       apiFetch(`/api/stats?user_id=${USER_ID}`),
       apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=30`),
-      apiFetch(`/api/demo_trades?user_id=${USER_ID}&limit=30`),
+      apiFetch(`/api/demo_trades?user_id=${USER_ID}&limit=100`),
     ]);
     USER         = userData;
     STATS        = statsData;
@@ -942,27 +946,27 @@ function renderDemo() {
           return `
           <div class="trade-card ${upnl > 0 ? 'status-profit' : upnl < 0 ? 'status-loss' : 'status-open'}" >
             <div class="trade-card-header" style="width:100%;display:flex;align-items:center;justify-content:space-between">
-              <div>
+              <div style="min-width:0;flex:1">
                 <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-                <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; ${tpLabel}${fmtDate(t.opened_at)}</div>
+                <div class="trade-detail" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; ${tpLabel}${fmtDate(t.opened_at)}</div>
               </div>
-              <div style="text-align:right;display:flex;align-items:center;gap:8px">
+              <div style="text-align:right;display:flex;align-items:center;gap:10px;flex-shrink:0">
                 ${upnl != null
                   ? `<div><div class="trade-pnl ${upnlPos?'pos':'neg'}">${upnlPos?'+':'-'}$${fmt(upnl)}</div>
                      <div class="trade-pct" style="color:${upnlPos?'var(--green)':'var(--red)'}">${upnlPos?'▲':'▼'} live</div></div>`
                   : `<div><div class="trade-pnl" style="color:var(--text3)">OPEN</div>
                      <div class="trade-pct">—</div></div>`
                 }
+                <!-- MANUAL CLOSE: delete this button to remove the feature -->
+                ${t.id != null ? `
+                <button onclick="closeDemoTrade(${t.id},'${String(t.symbol).replace(/'/g,"")}')"
+                        title="Close this trade"
+                        style="background:transparent;border:0.5px solid var(--red);color:var(--red);
+                               width:26px;height:26px;line-height:1;border-radius:50%;
+                               font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0;
+                               display:flex;align-items:center;justify-content:center;padding:0">&times;</button>` : ''}
               </div>
             </div>
-            <!-- MANUAL CLOSE: delete this block to remove the feature -->
-            ${t.id != null ? `
-            <div style="display:flex;justify-content:flex-end;padding:8px 0 0;border-top:0.5px solid var(--border);margin-top:8px">
-              <button onclick="closeDemoTrade(${t.id},'${String(t.symbol).replace(/'/g,"")}')"
-                      style="background:transparent;border:0.5px solid var(--red);color:var(--red);
-                             padding:5px 14px;border-radius:var(--radius-sm);font-size:11px;
-                             font-weight:600;cursor:pointer">Close trade</button>
-            </div>` : ''}
           </div>`;
         }).join('')}
         ${openDemo.length > 5 ? `
@@ -971,10 +975,46 @@ function renderDemo() {
           ${showAllOpen ? '▲ Show less' : `▼ View all ${openDemo.length} open trades`}
         </div>` : ''}
       ` : `<div class="empty-state">No open demo trades</div>`}
-      ${closedDemo.length ? `
-      <div class="section-header" style="padding:8px 0 10px"><div class="section-title">Demo history (${closedDemo.length})</div></div>
+      ${closedDemo.length ? (() => {
+        // ── history sort + filter ──
+        // Classification mirrors the badge logic below exactly, so a trade
+        // shown as a win is always the same set the "Wins" filter selects.
+        const EPS_F = 0.005;
+        const isWin  = t => t.status === 'TP_HIT' || parseFloat(t.profit_usd || 0) > EPS_F;
+        const isLoss = t => t.status !== 'TP_HIT' && parseFloat(t.profit_usd || 0) < -EPS_F;
+        let hist = closedDemo.slice();
+        if (histFilter === 'wins')   hist = hist.filter(isWin);
+        if (histFilter === 'losses') hist = hist.filter(isLoss);
+        const ts = t => {
+          const d = new Date(String(t.closed_at || t.opened_at || '').replace(' ', 'T'));
+          return isNaN(d) ? 0 : d.getTime();
+        };
+        const pf = t => parseFloat(t.profit_usd || 0);
+        if (histSort === 'newest') hist.sort((a, b) => ts(b) - ts(a));
+        if (histSort === 'oldest') hist.sort((a, b) => ts(a) - ts(b));
+        if (histSort === 'profit') hist.sort((a, b) => pf(b) - pf(a));
+        if (histSort === 'loss')   hist.sort((a, b) => pf(a) - pf(b));
+        const selCss = 'background:var(--bg3);border:0.5px solid var(--border);color:var(--text);'
+                     + 'border-radius:var(--radius-sm);padding:6px 8px;font-size:11px;'
+                     + 'font-family:inherit;outline:none;flex:1;min-width:0';
+        return `
+      <div class="section-header" style="padding:8px 0 10px"><div class="section-title">Demo history (${hist.length}${hist.length !== closedDemo.length ? ` of ${closedDemo.length}` : ''})</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <select style="${selCss}" onchange="histSort=this.value;goTo('demo',true)">
+          <option value="newest" ${histSort==='newest'?'selected':''}>Newest first</option>
+          <option value="oldest" ${histSort==='oldest'?'selected':''}>Oldest first</option>
+          <option value="profit" ${histSort==='profit'?'selected':''}>Highest profit</option>
+          <option value="loss"   ${histSort==='loss'  ?'selected':''}>Biggest loss</option>
+        </select>
+        <select style="${selCss}" onchange="histFilter=this.value;goTo('demo',true)">
+          <option value="all"    ${histFilter==='all'   ?'selected':''}>All trades</option>
+          <option value="wins"   ${histFilter==='wins'  ?'selected':''}>Wins only</option>
+          <option value="losses" ${histFilter==='losses'?'selected':''}>Losses only</option>
+        </select>
+      </div>
+      ${hist.length === 0 ? `<div class="empty-state">No trades match this filter</div>` : `
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
-        ${closedDemo.slice(0, showAllClosed ? closedDemo.length : 10).map(t => {
+        ${hist.slice(0, showAllClosed ? hist.length : 10).map(t => {
           const profit      = parseFloat(t.profit_usd || 0);
           const partial     = parseFloat(t.partial_closed || 0);
           // Same epsilon as the label below, so the amount's colour and sign
@@ -1013,12 +1053,12 @@ function renderDemo() {
           </div>`;
         }).join('')}
       </div>
-      ${closedDemo.length > 10 ? `
+      ${hist.length > 10 ? `
       <div style="text-align:center;padding:4px 0 12px;cursor:pointer;font-size:12px;color:var(--orange)"
            onclick="showAllClosed=!showAllClosed;goTo('demo',true)">
-        ${showAllClosed ? '▲ Show less' : `▼ View all ${closedDemo.length} trades`}
-      </div>` : ''}
-      ` : ''}
+        ${showAllClosed ? '▲ Show less' : `▼ View all ${hist.length} trades`}
+      </div>` : ''}`}
+      `; })() : ''}
     </div>`;
 }
 
