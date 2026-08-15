@@ -198,7 +198,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 13px; color: var(--text3); }
   .error-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 10px; padding: 24px; text-align: center; }
-  .error-icon { font-size: 36px; }
+  .error-icon { width: 40px; height: 40px; color: var(--orange); }
   .error-msg { font-size: 14px; color: var(--text2); line-height: 1.5; }
   .retry-btn { margin-top: 8px; padding: 10px 24px; border-radius: var(--radius); border: 0.5px solid var(--orange); background: var(--orange-dim); color: var(--orange); font-size: 13px; cursor: pointer; }
   .empty-state { text-align: center; padding: 28px 16px; color: var(--text3); font-size: 13px; }
@@ -388,7 +388,7 @@ async function loadData(silent=false) {
 function showError(msg, retry=false) {
   document.getElementById('screen-content').innerHTML = `
     <div class="error-wrap">
-      <div class="error-icon">⚡</div>
+      <div class="error-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M9 2 3.5 9.5H7.5L6 14 12.5 6H8.5L9 2Z"/></svg></div>
       <div class="error-msg">${msg.replace('\n','<br>')}</div>
       ${retry ? '<div class="retry-btn" onclick="loadData()">Try again</div>' : ''}
     </div>`;
@@ -662,38 +662,38 @@ function renderHome() {
       <div class="section-header"><div class="section-title">Quick controls</div></div>
       <div class="controls-grid">
         <div class="ctrl-card" onclick="togglePause()">
-          <div class="ctrl-icon ${USER.is_paused?'green':'orange'}">${USER.is_paused?'▶':'⏸'}</div>
+          <div class="ctrl-icon ${USER.is_paused?'green':'orange'}">${USER.is_paused?'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><path d="M4.5 3 13 8 4.5 13Z"/></svg>':'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><rect x="4.5" y="3" width="2.5" height="10" rx="0.8"/><rect x="9" y="3" width="2.5" height="10" rx="0.8"/></svg>'}</div>
           <div><div class="ctrl-name">${USER.is_paused?'Resume':'Pause'}</div><div class="ctrl-sub">${USER.is_paused?'Paused':'Active'}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('settings')">
-          <div class="ctrl-icon ${USER.has_api_key?'green':'red'}">🔑</div>
+          <div class="ctrl-icon ${USER.has_api_key?'green':'red'}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="4.5" cy="8" r="2.5"/><path d="M6.8 8H13"/><path d="M10.5 8V10"/><path d="M13 8V10.5"/></svg></div>
           <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${USER.has_api_key?'Connected':'Not set'}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('demo')">
-          <div class="ctrl-icon purple">🎮</div>
+          <div class="ctrl-icon purple"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
           <div><div class="ctrl-name">Demo</div><div class="ctrl-sub">$${fmtB(USER.demo.total_value)}</div></div>
         </div>
         <div class="ctrl-card" onclick="goTo('trades')">
-          <div class="ctrl-icon blue">📈</div>
+          <div class="ctrl-icon blue"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></div>
           <div><div class="ctrl-name">Win rate</div><div class="ctrl-sub">${s.win_rate}%</div></div>
         </div>
       </div>
       <div class="risk-card">
-        <div class="risk-label">Risk mode</div>
+        <div class="section-title" style="margin-bottom:10px">Risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:1px;vertical-align:1px"></span>Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
         <!-- CONTRARIAN: delete this div to remove the experimental mode -->
         <div class="risk-btns" style="margin-top:6px">
-          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')">🔄 Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
+          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
       <div class="demo-banner" onclick="goTo('demo')">
         <div class="demo-left">
-          <div style="font-size:22px">🎮</div>
+          <div style="width:22px;height:22px;color:var(--purple);flex-shrink:0"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
           <div>
             <div class="demo-title">${USER.is_demo?'Demo mode active':'Demo mode off'}</div>
             <div class="demo-sub">Virtual balance: $${fmtB(USER.demo.total_value)}</div>
@@ -788,30 +788,30 @@ function renderDemo() {
         </div>
         <div style="display:flex;flex-direction:column;gap:7px">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 14 5.5v6A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5v-6Z"/><path d="M2 6.5h12"/><circle cx="11" cy="9.5" r="0.75" fill="currentColor" stroke="none"/></svg></span><span style="font-size:12px;color:var(--text3)">Starting balance</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 5.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 14 5.5v6A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5v-6Z"/><path d="M2 6.5h12"/><circle cx="11" cy="9.5" r="0.75" fill="currentColor" stroke="none"/></svg></span><span style="font-size:12px;color:var(--text3)">Starting balance</span></div>
             <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.starting_balance||1000)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8A2.5 2.5 0 0 1 10.3 4"/></svg></span><span style="font-size:12px;color:var(--text3)">Free balance</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="3" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8A2.5 2.5 0 0 1 10.3 4"/></svg></span><span style="font-size:12px;color:var(--text3)">Free balance</span></div>
             <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.free_balance)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7"/></svg></span><span style="font-size:12px;color:var(--text3)">Locked in trades</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7"/></svg></span><span style="font-size:12px;color:var(--text3)">Locked in trades</span></div>
             <div style="font-size:12px;color:var(--orange);font-weight:500">$${fmtB(demo.locked)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5h2.3l1.5-4 2.4 7 1.6-5.5 1.2 2.5H14"/></svg></span><span style="font-size:12px;color:var(--text3)">Unrealized P&L</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 9.5h2.3l1.5-4 2.4 7 1.6-5.5 1.2 2.5H14"/></svg></span><span style="font-size:12px;color:var(--text3)">Unrealized P&L</span></div>
             <div style="font-size:12px;font-weight:500;color:${upnlPos?'var(--green)':'var(--red)'}">
               ${upnlPos?'+':'-'}$${fmt(upnl)}
             </div>
           </div>
           <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5 13.5 5.5 8 8.5 2.5 5.5 8 2.5Z"/><path d="M2.5 8.5 8 11.5l5.5-3"/><path d="M2.5 11 8 14l5.5-3"/></svg></span><span style="font-size:12px;color:var(--text3)">Total value</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M8 2.5 13.5 5.5 8 8.5 2.5 5.5 8 2.5Z"/><path d="M2.5 8.5 8 11.5l5.5-3"/><path d="M2.5 11 8 14l5.5-3"/></svg></span><span style="font-size:12px;color:var(--text3)">Total value</span></div>
             <div style="font-size:13px;color:var(--purple);font-weight:600">$${fmtB(demo.total_value)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></span><span style="font-size:12px;color:var(--text3)">Total return</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></span><span style="font-size:12px;color:var(--text3)">Total return</span></div>
             <div style="font-size:12px;font-weight:500;color:${retPos?'var(--green)':'var(--red)'}">
               ${retPos?'+':'-'}$${fmt(ret)}
             </div>
@@ -823,22 +823,22 @@ function renderDemo() {
       <!-- 4-category trade results grid -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <div class="demo-stat" style="border-color:rgba(34,197,94,0.2);background:var(--green-dim)">
-          <div class="demo-stat-l" style="color:rgba(34,197,94,0.6)">✅ Full wins</div>
+          <div class="demo-stat-l" style="color:rgba(34,197,94,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(34,197,94,0.15);color:var(--green);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>Full wins</div>
           <div class="demo-stat-v" style="color:var(--green)">${demo.full_wins}</div>
           <div style="font-size:9px;color:rgba(34,197,94,0.5);margin-top:2px">All TPs hit</div>
         </div>
         <div class="demo-stat" style="border-color:rgba(234,179,8,0.2);background:rgba(234,179,8,0.08)">
-          <div class="demo-stat-l" style="color:rgba(234,179,8,0.7)">🟡 Partial wins</div>
+          <div class="demo-stat-l" style="color:rgba(234,179,8,0.7)"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:1px"></span>Partial wins</div>
           <div class="demo-stat-v" style="color:#eab308">${demo.partial_wins}</div>
           <div style="font-size:9px;color:rgba(234,179,8,0.5);margin-top:2px">Closed in profit</div>
         </div>
         <div class="demo-stat" style="border-color:rgba(96,165,250,0.2);background:rgba(96,165,250,0.08)">
-          <div class="demo-stat-l" style="color:rgba(96,165,250,0.6)">🔒 Breakeven</div>
+          <div class="demo-stat-l" style="color:rgba(96,165,250,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(96,165,250,0.15);color:#60a5fa;align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3.5 6.5h9"/><path d="M3.5 9.5h9"/></svg></span>Breakeven</div>
           <div class="demo-stat-v" style="color:#60a5fa">${demo.breakevens}</div>
           <div style="font-size:9px;color:rgba(96,165,250,0.4);margin-top:2px">Closed at net zero</div>
         </div>
         <div class="demo-stat" style="border-color:rgba(239,68,68,0.2);background:var(--red-dim)">
-          <div class="demo-stat-l" style="color:rgba(239,68,68,0.6)">❌ Losses</div>
+          <div class="demo-stat-l" style="color:rgba(239,68,68,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(239,68,68,0.15);color:var(--red);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span>Losses</div>
           <div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div>
           <div style="font-size:9px;color:rgba(239,68,68,0.4);margin-top:2px">Closed at a loss</div>
         </div>
@@ -861,16 +861,16 @@ function renderDemo() {
         <div class="section-title" style="margin-bottom:10px">Realized P&L</div>
         <div style="display:flex;flex-direction:column;gap:7px">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">✅ Realized profit</div>
+            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:var(--green-dim);color:var(--green);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span><span style="font-size:12px;color:var(--text3)">Realized profit</span></div>
             <div style="font-size:12px;font-weight:500;color:var(--green)">+$${fmt(demo.realized_profit)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">❌ Realized loss</div>
+            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:var(--red-dim);color:var(--red);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span><span style="font-size:12px;color:var(--text3)">Realized loss</span></div>
             <div style="font-size:12px;font-weight:500;color:var(--red)">-$${fmt(demo.realized_loss)}</div>
           </div>
           <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">🔁 Net realized</div>
+            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:rgba(96,165,250,0.12);color:#60a5fa;align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span><span style="font-size:12px;color:var(--text3)">Net realized</span></div>
             <div style="font-size:13px;font-weight:600;color:${(demo.net_realized||0)>=0?'var(--green)':'var(--red)'}">
               ${(demo.net_realized||0)>=0?'+':'-'}$${fmt(demo.net_realized||0)}
             </div>
@@ -880,12 +880,12 @@ function renderDemo() {
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s;active:background:rgba(167,139,250,0.2)"
              onclick="openBotCommand('resetdemo')">
-          <div style="font-size:13px;color:var(--purple)">🔄 Reset demo</div>
+          <div style="font-size:13px;color:var(--purple)"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Reset demo</div>
           <div style="font-size:10px;color:rgba(167,139,250,0.4);margin-top:2px">Keep history</div>
         </div>
         <div style="flex:1;background:var(--red-dim);border:0.5px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer"
              onclick="openBotCommand('cleardemo')">
-          <div style="font-size:13px;color:var(--red)">🗑 Clear all</div>
+          <div style="font-size:13px;color:var(--red)"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 5h10"/><path d="M6.5 5V3.5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1V5"/><path d="M4.5 5 5 13a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l.5-8"/><path d="M6.7 7.5v4"/><path d="M9.3 7.5v4"/></svg></span>Clear all</div>
           <div style="font-size:10px;color:rgba(239,68,68,0.4);margin-top:2px">Wipe history</div>
         </div>
       </div>
@@ -909,13 +909,13 @@ function renderDemo() {
       <div class="risk-card" style="margin-bottom:8px">
         <div class="risk-label">Demo risk mode</div>
         <div class="risk-btns">
-          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:1px;vertical-align:1px"></span>Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
         <!-- CONTRARIAN: delete this div to remove the experimental mode -->
         <div class="risk-btns" style="margin-top:6px">
-          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')">🔄 Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
+          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
@@ -1049,13 +1049,13 @@ function renderDemo() {
           const EPS = 0.005;
           let lbl, lblColor;
           if (t.status === 'TP_HIT') {
-            lbl = '✅ Full win'; lblColor = 'var(--green)';
+            lbl = '<span style="display:inline-flex;vertical-align:-1px;width:10px;height:10px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>Full win'; lblColor = 'var(--green)';
           } else if (profit > EPS) {
-            lbl = '🟡 Partial win'; lblColor = '#eab308';
+            lbl = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#eab308;margin-right:4px;vertical-align:1px"></span>Partial win'; lblColor = '#eab308';
           } else if (profit >= -EPS) {
-            lbl = '🔒 Breakeven'; lblColor = '#60a5fa';
+            lbl = '<span style="display:inline-flex;vertical-align:-1px;width:10px;height:10px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3.5 6.5h9"/><path d="M3.5 9.5h9"/></svg></span>Breakeven'; lblColor = '#60a5fa';
           } else {
-            lbl = '❌ Loss'; lblColor = 'var(--red)';
+            lbl = '<span style="display:inline-flex;vertical-align:-1px;width:10px;height:10px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span>Loss'; lblColor = 'var(--red)';
           }
           return `
           <div class="trade-hist">
@@ -1090,19 +1090,19 @@ function renderSettings() {
   let subBg, subColor, subBorder, subIcon, subText, subSub;
   if (!isActive) {
     subBg = 'var(--red-dim)'; subColor = 'var(--red)'; subBorder = 'rgba(239,68,68,0.2)';
-    subIcon = '⛔️'; subText = 'Inactive'; subSub = 'Contact support to activate';
+    subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="8" cy="8" r="5.5"/><path d="M4.1 4.1 11.9 11.9"/></svg>'; subText = 'Inactive'; subSub = 'Contact support to activate';
   } else if (isLifetime) {
     subBg = 'rgba(234,179,8,0.08)'; subColor = '#eab308'; subBorder = 'rgba(234,179,8,0.2)';
-    subIcon = '👑'; subText = 'Lifetime Access'; subSub = 'Never expires';
+    subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 12 3.5 4 6 7.5 8 3 10 7.5 12.5 4 13 12 Z"/></svg>'; subText = 'Lifetime Access'; subSub = 'Never expires';
   } else if (dl <= 0) {
     subBg = 'var(--red-dim)'; subColor = 'var(--red)'; subBorder = 'rgba(239,68,68,0.2)';
-    subIcon = '🔴'; subText = 'Expired'; subSub = 'Renew to continue trading';
+    subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg>'; subText = 'Expired'; subSub = 'Renew to continue trading';
   } else if (dl <= 7) {
     subBg = 'rgba(234,179,8,0.08)'; subColor = '#eab308'; subBorder = 'rgba(234,179,8,0.2)';
-    subIcon = '⚠️'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
+    subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M8 2.8 14 13H2L8 2.8Z"/><path d="M8 6.5v3"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg>'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
   } else {
     subBg = 'var(--green-dim)'; subColor = 'var(--green)'; subBorder = 'rgba(34,197,94,0.2)';
-    subIcon = '✅'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
+    subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg>'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
   }
 
   return `
@@ -1111,7 +1111,7 @@ function renderSettings() {
       <!-- Subscription card -->
       <div style="background:${subBg};border:0.5px solid ${subBorder};border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="font-size:24px">${subIcon}</div>
+          <div style="width:24px;height:24px;color:${subColor};display:flex;align-items:center;justify-content:center;flex-shrink:0">${subIcon}</div>
           <div>
             <div style="font-size:14px;font-weight:600;color:${subColor}">${subText}</div>
             <div style="font-size:11px;color:var(--text3);margin-top:2px">${subSub}</div>
@@ -1125,7 +1125,7 @@ function renderSettings() {
 
       <!-- Payment box -->
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">💳 Subscribe / Renew</div>
+        <div style="font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex;width:14px;height:14px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="4" width="12" height="8.5" rx="1.3"/><path d="M2 7h12"/><path d="M4 10h3"/></svg></span>Subscribe / Renew</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
           <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center">
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">1 month</div>
@@ -1162,14 +1162,14 @@ function renderSettings() {
       <div class="settings-group">
         <div class="settings-row">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)">✓</div>
+            <div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></div>
             <div style="font-size:13px;color:var(--text)">Account status</div>
           </div>
           <span class="pill ${USER.is_active?'active':'inactive'}">${USER.is_active?'Active':'Inactive'}</span>
         </div>
         <div class="settings-row" onclick="if(!USER.has_api_key){if(tg)tg.openTelegramLink('https://t.me/${BOT_USERNAME}?start=connect');else window.open('https://t.me/${BOT_USERNAME}?start=connect','_blank')}">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔑</div>
+            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="4.5" cy="8" r="2.5"/><path d="M6.8 8H13"/><path d="M10.5 8V10"/><path d="M13 8V10.5"/></svg></div>
             <div>
               <div style="font-size:13px;color:var(--text)">Binance API</div>
               ${!USER.has_api_key ? '<div style="font-size:10px;color:var(--orange);margin-top:2px">Tap to connect →</div>' : ''}
@@ -1179,7 +1179,7 @@ function renderSettings() {
         </div>
         <div class="settings-row" onclick="toggleDemo()" style="cursor:pointer">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)">🎮</div>
+            <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
             <div>
               <div style="font-size:13px;color:var(--text)">Demo mode</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">${USER.is_demo?'Tap to stop demo':'Tap to start demo'}</div>
@@ -1199,13 +1199,13 @@ function renderSettings() {
       <div class="section-title" style="margin-bottom:8px;margin-top:14px">Risk mode</div>
       <div class="risk-card">
         <div class="risk-btns">
-          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
-          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')">🟡 Medium</button>
-          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')">🔴 High</button>
+          <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:1px;vertical-align:1px"></span>Low</button>
+          <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
+          <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
         <!-- CONTRARIAN: delete this div to remove the experimental mode -->
         <div class="risk-btns" style="margin-top:6px">
-          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')">🔄 Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
+          <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
@@ -1213,14 +1213,14 @@ function renderSettings() {
       <div class="settings-group">
         <div class="settings-row" onclick="togglePause()">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${USER.is_paused?'▶':'⏸'}</div>
+            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${USER.is_paused?'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><path d="M4.5 3 13 8 4.5 13Z"/></svg>':'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><rect x="4.5" y="3" width="2.5" height="10" rx="0.8"/><rect x="9" y="3" width="2.5" height="10" rx="0.8"/></svg>'}</div>
             <div style="font-size:13px;color:var(--text)">${USER.is_paused?'Resume trading':'Pause trading'}</div>
           </div>
           <span class="pill ${USER.is_paused?'paused':'active'}">${USER.is_paused?'Paused':'Active'}</span>
         </div>
         <div class="settings-row" onclick="openBotCommand('disconnect')">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)">🔌</div>
+            <div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M5 2v3"/><path d="M11 2v3"/><path d="M3.5 5h9v3a4.5 4.5 0 0 1-9 0V5Z"/><path d="M8 12.5v2"/><path d="M2 14 14 2"/></svg></div>
             <div style="font-size:13px;color:var(--red)">Disconnect Binance</div>
           </div>
           <div style="font-size:16px;color:var(--text3)">›</div>
@@ -1230,14 +1230,14 @@ function renderSettings() {
       <div class="settings-group">
         <div class="settings-row" onclick="loadData()">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa">🔄</div>
+            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></div>
             <div style="font-size:13px;color:var(--text)">Refresh data</div>
           </div>
           <div style="font-size:16px;color:var(--text3)">›</div>
         </div>
         <div class="settings-row" onclick="if(tg)tg.openTelegramLink('https://t.me/Leonit99');else window.open('https://t.me/Leonit99','_blank')">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">💬</div>
+            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2.5 4.5a1.5 1.5 0 0 1 1.5-1.5h8a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7l-3 2.5v-2.5H4a1.5 1.5 0 0 1-1.5-1.5v-5Z"/></svg></div>
             <div style="font-size:13px;color:var(--text)">Support</div>
           </div>
           <div style="font-size:13px;color:var(--text3)">@Leonit99</div>
