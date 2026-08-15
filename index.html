@@ -46,7 +46,9 @@
   .stat-value.orange { color: var(--orange); }
   .section { padding: 14px 16px 0; }
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .section-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }
+  .section-title { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .section-title::before { content: ''; display: block; width: 3px; height: 11px; border-radius: 2px; background: linear-gradient(180deg, var(--orange2), var(--orange)); flex-shrink: 0; }
+  .stat-icon { width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: var(--orange-dim); color: var(--orange); flex-shrink: 0; }
   .section-action { font-size: 11px; color: var(--orange); cursor: pointer; }
   .trade-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s; }
   .trade-card:active { background: var(--bg3); }
@@ -150,6 +152,8 @@
   @keyframes slideOutRight { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(30px)} }
   .slide-in-left  { animation: slideInLeft  0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
   .slide-in-right { animation: slideInRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+  .slide-out-left  { animation: slideOutLeft  0.14s cubic-bezier(0.4,0,1,1) forwards; }
+  .slide-out-right { animation: slideOutRight 0.14s cubic-bezier(0.4,0,1,1) forwards; }
 
   /* ── 3. TRADE STATUS COLOR BARS ── */
   .trade-card { position: relative; overflow: hidden; }
@@ -425,16 +429,29 @@ function goTo(tab, skipAnim=false) {
     USER ? (USER.is_paused ? '⏸ Trading paused' : subs[tab]) : subs[tab];
   if (!USER) return;
   const content = document.getElementById('screen-content');
-  // Remove old animation classes
-  content.classList.remove('slide-in-left','slide-in-right');
-  content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
-  if (!skipAnim) {
-    void content.offsetWidth;
-    content.classList.add(goRight ? 'slide-in-left' : 'slide-in-right');
+
+  const paint = () => {
+    content.classList.remove('slide-in-left','slide-in-right','slide-out-left','slide-out-right');
+    content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
+    if (!skipAnim) {
+      void content.offsetWidth;   // restart the animation even if the same class was just used
+      content.classList.add(goRight ? 'slide-in-left' : 'slide-in-right');
+    }
+    document.getElementById('screen').scrollTop = 0;
+    // Animate counters on demo tab
+    if (tab === 'demo') setTimeout(animateDemoCounters, 50);
+  };
+
+  if (skipAnim) {
+    paint();   // silent refresh (data reload, sort/filter change, show-more toggle) — no motion
+  } else {
+    // Real navigation: let the OLD page slide/fade out first, THEN swap content and
+    // slide the NEW page in. Without this the old screen was replaced instantly and
+    // only the incoming page faded in, which barely read as an animation at all.
+    content.classList.remove('slide-in-left','slide-in-right');
+    content.classList.add(goRight ? 'slide-out-left' : 'slide-out-right');
+    setTimeout(paint, 140);   // matches the .slide-out-* animation duration
   }
-  document.getElementById('screen').scrollTop = 0;
-  // Animate counters on demo tab
-  if (tab === 'demo') setTimeout(animateDemoCounters, 50);
 }
 
 // ── Animated number counter ──────────────────────────
@@ -766,35 +783,35 @@ function renderDemo() {
       <!-- Full stats breakdown — matches /demostats exactly -->
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px">Account breakdown</div>
+          <div class="section-title">Account breakdown</div>
           <div style="font-size:11px;color:var(--purple);cursor:pointer" onclick="loadData()">↻ Refresh</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:7px">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">💰 Starting balance</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 14 5.5v6A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5v-6Z"/><path d="M2 6.5h12"/><circle cx="11" cy="9.5" r="0.75" fill="currentColor" stroke="none"/></svg></span><span style="font-size:12px;color:var(--text3)">Starting balance</span></div>
             <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.starting_balance||1000)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">🔓 Free balance</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8A2.5 2.5 0 0 1 10.3 4"/></svg></span><span style="font-size:12px;color:var(--text3)">Free balance</span></div>
             <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.free_balance)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">🔒 Locked in trades</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7"/></svg></span><span style="font-size:12px;color:var(--text3)">Locked in trades</span></div>
             <div style="font-size:12px;color:var(--orange);font-weight:500">$${fmtB(demo.locked)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">📊 Unrealized P&L</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5h2.3l1.5-4 2.4 7 1.6-5.5 1.2 2.5H14"/></svg></span><span style="font-size:12px;color:var(--text3)">Unrealized P&L</span></div>
             <div style="font-size:12px;font-weight:500;color:${upnlPos?'var(--green)':'var(--red)'}">
               ${upnlPos?'+':'-'}$${fmt(upnl)}
             </div>
           </div>
           <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">💼 Total value</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5 13.5 5.5 8 8.5 2.5 5.5 8 2.5Z"/><path d="M2.5 8.5 8 11.5l5.5-3"/><path d="M2.5 11 8 14l5.5-3"/></svg></span><span style="font-size:12px;color:var(--text3)">Total value</span></div>
             <div style="font-size:13px;color:var(--purple);font-weight:600">$${fmtB(demo.total_value)}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:12px;color:var(--text3)">📈 Total return</div>
+            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></span><span style="font-size:12px;color:var(--text3)">Total return</span></div>
             <div style="font-size:12px;font-weight:500;color:${retPos?'var(--green)':'var(--red)'}">
               ${retPos?'+':'-'}$${fmt(ret)}
             </div>
@@ -841,7 +858,7 @@ function renderDemo() {
 
       <!-- Realized P&L breakdown -->
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">Realized P&L</div>
+        <div class="section-title" style="margin-bottom:10px">Realized P&L</div>
         <div style="display:flex;flex-direction:column;gap:7px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div style="font-size:12px;color:var(--text3)">✅ Realized profit</div>
@@ -1141,7 +1158,7 @@ function renderSettings() {
         </div>
       </div>
 
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Account</div>
+      <div class="section-title" style="margin-bottom:8px">Account</div>
       <div class="settings-group">
         <div class="settings-row">
           <div class="settings-row-left">
@@ -1171,7 +1188,7 @@ function renderSettings() {
           <span class="pill ${USER.is_demo?'active':'inactive'}">${USER.is_demo?'Active':'Off'}</span>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Trade amount</div>
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Trade amount</div>
       <div class="input-row">
         <div class="input-lbl">Amount per signal (real trades)</div>
         <div class="amount-display"><span class="amount-curr">$</span><span class="amount-val" id="amount-val">${USER.trade_amount || '—'}</span></div>
@@ -1179,7 +1196,7 @@ function renderSettings() {
           ${[5,10,25,50,100].map(v=>`<div class="amount-btn" onclick="setRealAmount(${v})">$${v}</div>`).join('')}
         </div>
       </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Risk mode</div>
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Risk mode</div>
       <div class="risk-card">
         <div class="risk-btns">
           <button class="risk-btn ${USER.risk_mode==='low'?'active':''}" data-mode="low" onclick="setRisk('low')">🟢 Low</button>
@@ -1192,7 +1209,7 @@ function renderSettings() {
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Controls</div>
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Controls</div>
       <div class="settings-group">
         <div class="settings-row" onclick="togglePause()">
           <div class="settings-row-left">
@@ -1209,7 +1226,7 @@ function renderSettings() {
           <div style="font-size:16px;color:var(--text3)">›</div>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:14px">Info</div>
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Info</div>
       <div class="settings-group">
         <div class="settings-row" onclick="loadData()">
           <div class="settings-row-left">
