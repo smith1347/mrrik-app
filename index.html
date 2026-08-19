@@ -335,6 +335,14 @@ let histFilter = 'all';     // all | wins | losses
 // ── Formatters ──────────────────────────────────────
 function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
 function fmtB(n) { return parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+// ADMIN TOOLS: escape admin-authored text before it goes into innerHTML.
+// close_reason is typed by a human in the admin panel, so it must never be
+// interpolated raw into a template literal.
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 function fmtDate(s) {
   if (!s) return '';
   const d = new Date(s.replace(' ','T'));
@@ -1057,11 +1065,25 @@ function renderDemo() {
           } else {
             lbl = '<span style="display:inline-flex;vertical-align:-1px;width:10px;height:10px;margin-right:3px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span>Loss'; lblColor = 'var(--red)';
           }
+          // ADMIN TOOLS: closed_manually is 1 when the user closed the trade
+          // themselves and 2 when support closed it early. The two are
+          // different events so they get different wording, and the second
+          // shows the reason rather than leaving the user to guess.
+          const cm = Number(t.closed_manually);
+          const closeTag = cm === 1
+            ? ' <span style="color:var(--text3)">· closed manually</span>'
+            : cm === 2
+              ? ' <span style="color:#eab308">· closed early by MRRIK</span>'
+              : '';
+          const closeNote = (cm === 2 && t.close_reason)
+            ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;line-height:1.35">${esc(t.close_reason)}</div>`
+            : '';
           return `
           <div class="trade-hist">
             <div>
               <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-              <div class="hist-date" style="color:${lblColor}">${lbl}${Number(t.closed_manually) === 1 ? ' <span style="color:var(--text3)">· closed manually</span>' : ''} &middot; ${fmtDate(t.closed_at)}</div>
+              <div class="hist-date" style="color:${lblColor}">${lbl}${closeTag} &middot; ${fmtDate(t.closed_at)}</div>
+              ${closeNote}
             </div>
             <div>
               <div class="hist-pnl ${isPos?'win':isNeg?'loss':''}" style="${!isPos&&!isNeg?'color:#60a5fa':''}">${isPos?'+':isNeg?'-':''}$${fmt(profit)}</div>
