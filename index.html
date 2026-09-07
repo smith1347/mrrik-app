@@ -343,6 +343,56 @@ function esc(v) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+// USER INFO: turn joined_date ('YYYY-MM-DD HH:MM') into a readable date plus
+// an elapsed-time phrase. Written as two separate values so the card can show
+// "04 Jun 2026" and "3 months" without re-parsing.
+function memberSince(raw) {
+  if (!raw) return { date: '\u2014', elapsed: '\u2014', days: 0 };
+  // Space -> T so iOS/Safari parses it; without this every date is Invalid.
+  const d = new Date(String(raw).replace(' ', 'T'));
+  if (isNaN(d)) return { date: '\u2014', elapsed: '\u2014', days: 0 };
+  const days = Math.max(0, Math.floor((Date.now() - d) / 86400000));
+  let elapsed;
+  if (days === 0)      elapsed = 'Joined today';
+  else if (days === 1) elapsed = '1 day';
+  else if (days < 30)  elapsed = days + ' days';
+  else if (days < 60)  elapsed = '1 month';
+  else if (days < 365) elapsed = Math.floor(days / 30) + ' months';
+  else {
+    const y = Math.floor(days / 365), m = Math.floor((days % 365) / 30);
+    elapsed = y + (y === 1 ? ' year' : ' years') + (m ? ' ' + m + 'm' : '');
+  }
+  return {
+    date: d.toLocaleDateString('en-US', { day:'2-digit', month:'short', year:'numeric' }),
+    elapsed, days
+  };
+}
+
+// USER INFO: copy text to the clipboard. Telegram's WebView does not always
+// expose navigator.clipboard, so fall back to a hidden textarea + execCommand.
+function copyText(txt, label) {
+  const done = () => {
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    showToast((label || 'Copied') + ' copied');
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
+    } else fallbackCopy(txt, done);
+  } catch (e) { fallbackCopy(txt, done); }
+}
+function fallbackCopy(txt, done) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  } catch (e) { showToast('Could not copy'); }
+}
+
 function fmtDate(s) {
   if (!s) return '';
   const d = new Date(s.replace(' ','T'));
@@ -1127,8 +1177,50 @@ function renderSettings() {
     subIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg>'; subText = `${dl} days left`; subSub = `Expires ${sub.expires}`;
   }
 
+  // USER INFO: profile card. Everything here already comes from /api/user.
+  const ms       = memberSince(USER.joined_date);
+  const uname    = USER.username ? '@' + USER.username : null;
+  const fullName = USER.full_name || (USER.user && USER.user.name) || 'MRRIK User';
+  const uid      = USER.user_id != null ? String(USER.user_id) : '\u2014';
+  const initial  = (fullName.trim()[0] || 'M').toUpperCase();
+
   return `
     <div class="section" style="margin-top:14px">
+
+      <!-- USER INFO -->
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--dim);border:1px solid rgba(255,145,77,0.35);display:flex;align-items:center;justify-content:center;color:var(--orange);font-size:18px;font-weight:600">${esc(initial)}</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${esc(fullName)}${USER.is_premium ? ' <span title="Telegram Premium" style="color:#eab308;font-size:12px">\u2b50</span>' : ''}
+            </div>
+            <div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${uname ? esc(uname) : '<span style="opacity:.6">no username set</span>'}
+            </div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0">
+          <span style="font-size:12px;color:var(--text3)">Telegram ID</span>
+          <span onclick="copyText('${esc(uid)}','ID')" style="font-size:13px;color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer;display:flex;align-items:center;gap:6px">
+            ${esc(uid)}
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--orange);flex:0 0 13px"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>
+          </span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0">
+          <span style="font-size:12px;color:var(--text3)">Member since</span>
+          <span style="font-size:13px;color:var(--text)">${esc(ms.date)}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0">
+          <span style="font-size:12px;color:var(--text3)">Time with MRRIK</span>
+          <span style="font-size:13px;color:var(--orange);font-weight:500">${esc(ms.elapsed)}</span>
+        </div>
+      </div>
 
       <!-- Subscription card -->
       <div style="background:${subBg};border:0.5px solid ${subBorder};border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
