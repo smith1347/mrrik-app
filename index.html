@@ -1182,7 +1182,6 @@ function renderSettings() {
   const uname    = USER.username ? '@' + USER.username : null;
   const fullName = USER.full_name || (USER.user && USER.user.name) || 'MRRIK User';
   const uid      = USER.user_id != null ? String(USER.user_id) : '\u2014';
-  const initial  = (fullName.trim()[0] || 'M').toUpperCase();
 
   return `
     <div class="section" style="margin-top:14px">
@@ -1190,7 +1189,9 @@ function renderSettings() {
       <!-- USER INFO -->
       <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--dim);border:1px solid rgba(255,145,77,0.35);display:flex;align-items:center;justify-content:center;color:var(--orange);font-size:18px;font-weight:600">${esc(initial)}</div>
+          <div style="width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:radial-gradient(circle at 50% 30%, rgba(255,145,77,0.16), var(--dim) 70%);border:1px solid rgba(255,145,77,0.35);box-shadow:0 0 0 3px rgba(255,145,77,0.06);display:flex;align-items:center;justify-content:center;color:var(--orange)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="21" height="21"><circle cx="8" cy="5.4" r="2.7"/><path d="M2.9 13.7c0-2.82 2.28-5.1 5.1-5.1s5.1 2.28 5.1 5.1"/></svg>
+          </div>
           <div style="min-width:0;flex:1">
             <div style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
               ${esc(fullName)}${USER.is_premium ? ' <span title="Telegram Premium" style="color:#eab308;font-size:12px">\u2b50</span>' : ''}
