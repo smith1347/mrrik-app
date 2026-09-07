@@ -1404,6 +1404,19 @@ document.addEventListener('click', function(e) {
 
 // ── Boot ─────────────────────────────────────────────
 setInterval(() => loadData(true), 60000);
+
+// DEEPLINK FIX: every settings control (risk mode, pause, demo toggle, trade
+// amounts) updates the screen immediately and then hands off to Telegram to
+// actually apply the change. If the person cancels the Telegram prompt, the
+// screen keeps showing a change the server never made, and the 60s poll above
+// meant that lie could sit there for up to a minute.
+//
+// Coming back from Telegram fires visibilitychange, so refetch at that moment
+// and the display always settles on what the server truly has -- whether the
+// action was confirmed or cancelled.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadData(true);
+});
 USER_ID = getUserId();
 loadData();
 </script>
