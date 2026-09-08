@@ -229,6 +229,37 @@
   @keyframes mkPulse { 0%,100%{opacity:1} 50%{opacity:.35} }
   .mk-card { background: linear-gradient(180deg, rgba(255,145,77,.035), rgba(255,145,77,0) 90px), var(--bg2);
              border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  /* HOME HEADER: getting-started card, same living-background technique as
+     the Fear & Greed gauge, reusing fngDots() in the brand orange. */
+  .gs-card { position:relative; overflow:hidden; background:var(--bg2);
+             border:0.5px solid var(--border); border-radius:14px; padding:16px;
+             margin:14px 16px 0; }
+  .gs-fx { position:absolute; inset:-45%; pointer-events:none; opacity:.4;
+           background: radial-gradient(closest-side, var(--orange) 0%, transparent 62%);
+           filter: blur(30px); animation: fngDrift 15s ease-in-out infinite; }
+  .gs-dots { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .gs-head { display:flex; align-items:baseline; justify-content:space-between;
+             font-size:14px; font-weight:600; color:var(--text); margin-bottom:12px; }
+  .gs-count { font-size:11px; font-weight:700; color:var(--orange); }
+  .gs-bars { display:flex; gap:6px; margin-bottom:15px; }
+  .gs-bar { flex:1; height:4px; border-radius:2px; background:var(--bg4);
+            transition: background .3s; }
+  .gs-bar.on { background:#16c784; }
+  .gs-rows { display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+  .gs-row { display:flex; align-items:center; gap:10px; }
+  .gs-tick { width:18px; height:18px; flex:0 0 18px; border-radius:50%;
+             border:1.5px solid var(--border); display:flex; align-items:center;
+             justify-content:center; color:#16c784; transition: all .25s; }
+  .gs-tick.done { border-color:transparent; background:rgba(22,199,132,.15); }
+  .gs-label { font-size:12.5px; color:var(--text); font-weight:500; }
+  .gs-label.done { color:var(--text3); text-decoration:line-through;
+                    text-decoration-color:var(--border); }
+  .gs-cta { margin-top:14px; display:flex; align-items:center; justify-content:center; gap:7px;
+            background:rgba(255,145,77,.1); border:1px solid rgba(255,145,77,.35);
+            color:var(--orange); font-size:13px; font-weight:600; padding:11px;
+            border-radius:10px; cursor:pointer; transition: background .15s; }
+  .gs-cta:active { background:rgba(255,145,77,.18); }
+  @media (prefers-reduced-motion: reduce) { .gs-fx { animation:none; } .gs-dots .fng-dot { animation:none; opacity:.4; } }
   .mk-row { display:flex; align-items:center; gap:11px; padding:11px 13px; border-bottom:0.5px solid var(--border); transition: background .15s; }
   .mk-row:active { background: var(--bg3); }
   .mk-rank { width:20px; height:20px; flex:0 0 20px; border-radius:6px; background:var(--bg3); color:var(--text3);
@@ -1014,13 +1045,64 @@ function toggleDemo() {
 }
 
 // ── Render: Home (real trade stats) ─────────────────
+// HOME HEADER: getting-started card for a brand-new real-trading user.
+// Steps derive from data already in USER/USER.demo -- nothing new to track.
+function gsSteps() {
+  const demoTried = !!(USER.demo && USER.demo.total_trades > 0) || !!USER.is_demo;
+  return [
+    { done: true,        label: "Account created" },
+    { done: demoTried,   label: "Demo mode tried" },
+    { done: USER.has_api_key, label: "Connect Binance to go live" },
+  ];
+}
+
+function renderGettingStarted() {
+  const steps = gsSteps();
+  const doneCount = steps.filter(x => x.done).length;
+  const bars = steps.map(x => `<div class="gs-bar${x.done ? ' on' : ''}"></div>`).join('');
+  const rows = steps.map(x => `
+    <div class="gs-row">
+      <div class="gs-tick${x.done ? ' done' : ''}">${x.done
+        ? '<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.2l3.2 3.2L13 4.6"/></svg>'
+        : ''}</div>
+      <span class="gs-label${x.done ? ' done' : ''}">${esc(x.label)}</span>
+    </div>`).join('');
+
+  return `
+    <div class="gs-card">
+      <div class="gs-fx" aria-hidden="true"></div>
+      <div class="gs-dots" aria-hidden="true">${fngDots('#ff914d')}</div>
+      <div style="position:relative">
+        <div class="gs-head">
+          <span>Your first trade is close</span>
+          <span class="gs-count">${doneCount} of ${steps.length}</span>
+        </div>
+        <div class="gs-bars">${bars}</div>
+        <div class="gs-rows">${rows}</div>
+        ${!USER.has_api_key ? `
+        <div class="gs-cta" onclick="if(tg)tg.openTelegramLink('https://t.me/'+BOT_USERNAME+'?start=connect');else window.open('https://t.me/'+BOT_USERNAME+'?start=connect','_blank')">
+          <span>Connect Binance</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
 function renderHome() {
   const s = STATS;
   const openTrades = REAL_TRADES.filter(t => t.status === 'OPEN').slice(0, 3);
   const net = s.net;
   const netPos = net >= 0;
 
+  // HOME HEADER: a brand-new real-trading user (no API key, no history) sees
+  // a getting-started card instead of a wall of zeros. The moment either the
+  // key is connected or a real trade exists, this reverts to the normal
+  // stats grid -- so an active trader sitting at a genuine $0.00 P&L today
+  // never gets mistaken for someone who hasn't started, and vice versa.
+  const isNewRealUser = !USER.has_api_key && (s.total === 0);
+
   return `
+    ${isNewRealUser ? renderGettingStarted() : `
     <div class="balance-card">
       <div class="bal-label">Real trading — net P&L</div>
       <div class="bal-amount" style="color:${netPos?'var(--green)':'var(--red)'}">
@@ -1034,7 +1116,7 @@ function renderHome() {
       <div class="stat-item"><div class="stat-label">Open</div><div class="stat-value orange">${s.open_trades}</div></div>
       <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${s.wins}</div></div>
       <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${s.losses}</div></div>
-    </div>
+    </div>`}
     <div class="section" style="margin-top:14px">
       <div class="section-header">
         <div class="section-title">Open real trades</div>
