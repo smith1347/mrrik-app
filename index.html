@@ -171,21 +171,34 @@
   .fng-needle { transform-box: fill-box; transform-origin: 50% 50%; animation: fngSweep 1.15s cubic-bezier(.34,1.3,.5,1) both; }
   @media (prefers-reduced-motion: reduce) { .fng-needle { animation: none; } }
   .mk-head { display:flex; align-items:center; justify-content:space-between; margin: 26px 2px 10px; }
-  .mk-h1 { font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--text2); }
+  .mk-thead { display:flex; align-items:center; gap:11px; padding:9px 13px; font-size:9.5px; font-weight:600;
+              letter-spacing:.07em; text-transform:uppercase; color:var(--text3);
+              background:rgba(255,255,255,.022); border-bottom:0.5px solid var(--border); }
+  .mk-logo { position:relative; width:28px; height:28px; flex:0 0 28px; border-radius:50%;
+             background:var(--bg3); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .mk-logo span { font-size:11px; font-weight:700; color:var(--text3); }
+  .mk-logo img { position:absolute; inset:0; width:100%; height:100%; border-radius:50%; opacity:0; transition:opacity .25s; }
+  .mk-spark { flex:0 0 54px; width:54px; height:26px; opacity:.95; }
+  .mk-sent { margin-top:14px; padding:11px 12px; border-radius:10px; border:1px solid;
+             background:rgba(255,255,255,.025); }
+  .mk-sent-h { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+               letter-spacing:.3px; margin-bottom:5px; }
+  .mk-sent-b { font-size:11.5px; line-height:1.5; color:var(--text2); }
   .mk-age { display:flex; align-items:center; gap:5px; font-size:10px; color: var(--text3); }
   .mk-dot { width:5px; height:5px; border-radius:50%; display:inline-block; background: var(--text3); }
   .mk-live { background:#16c784; box-shadow:0 0 6px #16c784; animation: mkPulse 2.2s ease-in-out infinite; }
   @keyframes mkPulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-  .mk-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .mk-row { display:flex; align-items:center; gap:11px; padding:12px 13px; border-bottom:0.5px solid var(--border); transition: background .15s; }
+  .mk-card { background: linear-gradient(180deg, rgba(255,145,77,.035), rgba(255,145,77,0) 90px), var(--bg2);
+             border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .mk-row { display:flex; align-items:center; gap:11px; padding:11px 13px; border-bottom:0.5px solid var(--border); transition: background .15s; }
   .mk-row:active { background: var(--bg3); }
   .mk-rank { width:20px; height:20px; flex:0 0 20px; border-radius:6px; background:var(--bg3); color:var(--text3);
              font-size:10px; font-weight:600; display:flex; align-items:center; justify-content:center; }
   .mk-sym { color: var(--text); font-size:14px; font-weight:600; letter-spacing:.2px; }
   .mk-name { color: var(--text3); font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
   .mk-price { color: var(--text); font-size:14px; font-weight:600; font-variant-numeric: tabular-nums; letter-spacing:-.2px; }
-  .mk-chg { display:inline-flex; align-items:center; font-size:10.5px; font-weight:600; font-variant-numeric: tabular-nums;
-            padding:2px 6px; border-radius:5px; margin-top:3px; }
+  .mk-chg { display:inline-flex; align-items:center; font-size:10.5px; font-weight:700; font-variant-numeric: tabular-nums;
+            padding:2.5px 7px; border-radius:6px; margin-top:4px; border:1px solid transparent; }
   .mk-more { text-align:center; padding:12px; color:var(--orange); font-size:12px; font-weight:600;
              cursor:pointer; border-top:0.5px solid var(--border); }
   .mk-more:active { background: var(--bg3); }
@@ -438,6 +451,14 @@ function fngBand(v) {
   if (v < 75) return 'Greed';
   return 'Extreme greed';
 }
+function fngNote(v) {
+  // Describes what the reading means, without telling anyone what to do.
+  if (v < 25) return 'Extreme fear. Sentiment is heavily negative and volatility is usually elevated.';
+  if (v < 45) return 'Fear is leading the market. Sellers have been more active than buyers.';
+  if (v < 55) return 'Neutral. Buying and selling pressure are close to balanced.';
+  if (v < 75) return 'Greed is leading the market. Sentiment is positive, and moves can overextend.';
+  return 'Extreme greed. Sentiment is stretched and reversals are more common at these levels.';
+}
 function fmtPrice(p) {
   const n = Number(p);
   if (!isFinite(n)) return '\u2014';
@@ -507,20 +528,52 @@ function fngGauge(v, label) {
       <span>0 &middot; Extreme fear</span><span>Extreme greed &middot; 100</span>
     </div>
     <div style="text-align:center;margin-top:10px">
-      <div style="font-size:40px;font-weight:700;line-height:1;color:${col};text-shadow:0 0 22px ${col}55;font-variant-numeric:tabular-nums">${val}</div>
+      <div style="font-size:42px;font-weight:700;line-height:1;color:${col};text-shadow:0 0 24px ${col}55;font-variant-numeric:tabular-nums">${val}</div>
       <div style="font-size:13px;font-weight:600;color:${col};margin-top:5px;letter-spacing:.3px">${esc(label || fngBand(val))}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">Market sentiment today</div>
+    </div>
+    <div class="mk-sent" style="border-color:${col}44">
+      <div class="mk-sent-h" style="color:${col}">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M8 2.5a2 2 0 0 0-2 2v.2a1.8 1.8 0 0 0-1.5 1.8c0 .3.1.6.2.8a1.8 1.8 0 0 0 .4 3.2c0 1.1.9 2 2 2a1.6 1.6 0 0 0 1.4-.8"/><path d="M8 2.5a2 2 0 0 1 2 2v.2a1.8 1.8 0 0 1 1.5 1.8c0 .3-.1.6-.2.8a1.8 1.8 0 0 1-.4 3.2c0 1.1-.9 2-2 2a1.6 1.6 0 0 1-1.4-.8"/><path d="M8 2.5v11"/></svg>
+        Market sentiment
+      </div>
+      <div class="mk-sent-b">${fngNote(val)}</div>
     </div>
   </div>`;
 }
 
+// A 7d sparkline drawn from the points the backend already caches. Coloured
+// by the direction of the whole week, which is often not the same sign as the
+// 24h change -- that contrast is the point of showing both.
+function sparkPath(spark, w, h) {
+  if (!spark || spark.length < 2) return null;
+  const lo = Math.min(...spark), hi = Math.max(...spark);
+  const span = (hi - lo) || 1;
+  const pad = 2;
+  const pts = spark.map((v, i) => {
+    const x = (i / (spark.length - 1)) * w;
+    const y = h - pad - ((v - lo) / span) * (h - pad * 2);
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  });
+  return { line: pts.join(' '), up: spark[spark.length - 1] >= spark[0] };
+}
+
+function coinLogo(c) {
+  // The logo is decorative. If CoinGecko's CDN is slow or blocked the <img>
+  // is hidden and the lettered fallback underneath shows instead, so a row
+  // never collapses into a broken-image icon.
+  const letter = esc((c.symbol || '?').slice(0, 1));
+  const src = c.image ? esc(c.image) : '';
+  return `<div class="mk-logo"><span>${letter}</span>${src
+    ? `<img src="${src}" alt="" loading="lazy" onload="this.style.opacity=1" onerror="this.remove()">` : ''}</div>`;
+}
+
 function renderMarket() {
   if (!MARKET) {
-    return `<div class="mk-head"><span class="mk-h1">Top 10 coins</span></div>
+    return `<div class="section-title" style="margin:26px 2px 10px">Top 10 coins</div>
       <div class="mk-card" style="padding:26px;text-align:center;color:var(--text3);font-size:12px">Loading market data\u2026</div>`;
   }
   if (!MARKET.coins || !MARKET.coins.length) {
-    return `<div class="mk-head"><span class="mk-h1">Top 10 coins</span></div>
+    return `<div class="section-title" style="margin:26px 2px 10px">Top 10 coins</div>
       <div class="mk-card" style="padding:26px;text-align:center;color:var(--text3);font-size:12px">Market data unavailable</div>`;
   }
   const rows = (marketShowAll ? MARKET.coins : MARKET.coins.slice(0, 5)).map((c, i, arr) => {
@@ -528,20 +581,30 @@ function renderMarket() {
     const up   = ch != null && ch > 0;
     const flat = ch == null || ch === 0;
     const col  = flat ? 'var(--text3)' : up ? '#16c784' : '#ff4d4d';
-    const bg   = flat ? 'rgba(255,255,255,.05)' : up ? 'rgba(22,199,132,.13)' : 'rgba(255,77,77,.13)';
-    const arrow = flat ? '' : up
-      ? '<svg viewBox="0 0 10 10" width="9" height="9" style="margin-right:2px"><path d="M5 1.5 L9 8 L1 8 Z" fill="currentColor"/></svg>'
-      : '<svg viewBox="0 0 10 10" width="9" height="9" style="margin-right:2px"><path d="M5 8.5 L1 2 L9 2 Z" fill="currentColor"/></svg>';
+    const bg   = flat ? 'rgba(255,255,255,.05)' : up ? 'rgba(22,199,132,.14)' : 'rgba(255,77,77,.14)';
+    const bd   = flat ? 'rgba(255,255,255,.08)' : up ? 'rgba(22,199,132,.3)'  : 'rgba(255,77,77,.3)';
+    const tri  = flat ? '' : up
+      ? '<svg viewBox="0 0 10 10" width="8" height="8" style="margin-right:3px"><path d="M5 2 L9 8 L1 8 Z" fill="currentColor"/></svg>'
+      : '<svg viewBox="0 0 10 10" width="8" height="8" style="margin-right:3px"><path d="M5 8 L1 2 L9 2 Z" fill="currentColor"/></svg>';
+    const sp = sparkPath(c.spark, 54, 26);
+    const spCol = sp ? (sp.up ? '#16c784' : '#ff4d4d') : '';
+    const spark = sp ? `
+      <svg class="mk-spark" viewBox="0 0 54 26" width="54" height="26" preserveAspectRatio="none" aria-hidden="true">
+        <polyline points="${sp.line}" fill="none" stroke="${spCol}" stroke-width="1.4"
+                  stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+      </svg>` : '<div class="mk-spark"></div>';
     return `
     <div class="mk-row" style="${i === arr.length - 1 ? 'border-bottom:none' : ''}">
       <span class="mk-rank">${c.rank}</span>
+      ${coinLogo(c)}
       <div style="flex:1;min-width:0">
         <div class="mk-sym">${esc(c.symbol)}</div>
         <div class="mk-name">${esc(c.name)}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
+      ${spark}
+      <div style="text-align:right;flex-shrink:0;min-width:74px">
         <div class="mk-price">$${fmtPrice(c.price)}</div>
-        <div class="mk-chg" style="color:${col};background:${bg}">${arrow}${flat ? '\u2014' : (up ? '+' : '') + ch.toFixed(2) + '%'}</div>
+        <div class="mk-chg" style="color:${col};background:${bg};border-color:${bd}">${tri}${flat ? '\u2014' : (up ? '+' : '') + ch.toFixed(2) + '%'}</div>
       </div>
     </div>`;
   }).join('');
@@ -552,9 +615,15 @@ function renderMarket() {
 
   return `
     <div class="mk-head">
-      <span class="mk-h1">Top 10 coins</span>${dot}
+      <div class="section-title">Top 10 coins</div>${dot}
     </div>
     <div class="mk-card">
+      <div class="mk-thead">
+        <span style="width:22px">#</span>
+        <span style="flex:1;padding-left:38px">Coin</span>
+        <span style="width:54px;text-align:center">7d</span>
+        <span style="min-width:74px;text-align:right">Price / 24h</span>
+      </div>
       ${rows}
       ${MARKET.coins.length > 5 ? `
       <div class="mk-more" onclick="marketShowAll=!marketShowAll;goTo('home')">
@@ -562,7 +631,7 @@ function renderMarket() {
       </div>` : ''}
     </div>
     ${MARKET.fng ? `
-    <div class="mk-head"><span class="mk-h1">Fear &amp; greed</span></div>
+    <div class="mk-head"><div class="section-title">Fear &amp; greed</div></div>
     <div class="mk-card" style="padding:16px 16px 18px">${fngGauge(MARKET.fng.value, MARKET.fng.label)}</div>` : ''}`;
 }
 
