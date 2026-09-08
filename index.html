@@ -231,6 +231,25 @@
              border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   /* HOME HEADER: getting-started card, same living-background technique as
      the Fear & Greed gauge, reusing fngDots() in the brand orange. */
+  /* DERIVS */
+  .fr-strip { display:flex; gap:8px; overflow-x:auto; padding:2px 2px 6px;
+              -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .fr-strip::-webkit-scrollbar { display:none; }
+  .fr-chip { flex:0 0 auto; min-width:88px; background:var(--bg2);
+             border:0.5px solid var(--border); border-radius:10px; padding:9px 11px; text-align:center; }
+  .fr-sym { font-size:11px; font-weight:700; color:var(--text2); letter-spacing:.3px; }
+  .fr-rate { font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:3px; }
+  .fr-apr { font-size:9.5px; color:var(--text3); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .fr-note { font-size:10.5px; color:var(--text3); line-height:1.45; margin:7px 3px 0; }
+  .oi-row { padding:11px 13px; border-bottom:0.5px solid var(--border); }
+  .oi-top { display:flex; align-items:baseline; justify-content:space-between; }
+  .oi-sym { font-size:13px; font-weight:600; color:var(--text); }
+  .oi-val { font-size:13px; font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; }
+  .oi-lsbar { display:flex; height:5px; border-radius:3px; overflow:hidden; margin-top:8px; background:var(--bg4); }
+  .oi-long { background:#16c784; }
+  .oi-short { background:#ff4d4d; }
+  .oi-lslab { display:flex; justify-content:space-between; font-size:10px; margin-top:4px;
+              font-variant-numeric:tabular-nums; }
   .gs-card { position:relative; overflow:hidden; background:var(--bg2);
              border:0.5px solid var(--border); border-radius:14px; padding:16px;
              margin:14px 16px 0; }
@@ -676,6 +695,92 @@ function coinLogo(c) {
     ? `<img src="${src}" alt="" loading="lazy" onload="this.style.opacity=1" onerror="this.remove()">` : ''}</div>`;
 }
 
+// DERIVS: funding is a fraction per funding interval. Colour follows the
+// sign because that is what it means: positive = longs pay shorts (crowded
+// longs), negative = shorts pay longs.
+function fundColor(v) {
+  if (v == null) return 'var(--text3)';
+  if (v > 0.03)  return '#ff4d4d';
+  if (v > 0)     return '#ff9f2e';
+  if (v === 0)   return 'var(--text3)';
+  if (v > -0.03) return '#8fd14f';
+  return '#16c784';
+}
+function fmtCountdown(ms) {
+  if (!ms) return '';
+  const d = ms - Date.now();
+  if (d <= 0) return 'due';
+  const h = Math.floor(d / 3600000), m = Math.floor((d % 3600000) / 60000);
+  return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+}
+function fmtUsdShort(v) {
+  // Number(null) is 0, which is finite -- so a missing value would print as
+  // "$0" and read as a real reading of zero open interest. Reject null and
+  // empty string explicitly before converting.
+  if (v == null || v === '') return '\u2014';
+  const n = Number(v);
+  if (!isFinite(n)) return '\u2014';
+  const a = Math.abs(n);
+  if (a >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (a >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+
+function renderFunding() {
+  const rows = (MARKET.coins || []).filter(c => c.funding != null);
+  if (!rows.length) return '';
+  const next = rows.map(c => c.funding_next).filter(Boolean).sort((a, b) => a - b)[0];
+  const cd = fmtCountdown(next);
+  const chips = rows.map(c => `
+    <div class="fr-chip">
+      <div class="fr-sym">${esc(c.symbol)}</div>
+      <div class="fr-rate" style="color:${fundColor(c.funding)}">${c.funding > 0 ? '+' : ''}${c.funding.toFixed(4)}%</div>
+      <div class="fr-apr">${c.funding_apr > 0 ? '+' : ''}${c.funding_apr.toFixed(1)}% APR</div>
+    </div>`).join('');
+  return `
+    <div class="mk-head">
+      <div class="section-title">Funding rate</div>
+      ${cd ? `<span class="mk-age">next in ${esc(cd)}</span>` : ''}
+    </div>
+    <div class="fr-strip">${chips}</div>
+    <div class="fr-note">Positive means longs pay shorts. Negative means shorts pay longs.</div>`;
+}
+
+function renderOpenInterest() {
+  const rows = (MARKET.coins || []).filter(c => c.oi_usd != null || c.long_pct != null);
+  if (!rows.length) return '';
+  const body = rows.map((c, i, arr) => {
+    const chg = c.oi_chg;
+    const up = chg != null && chg > 0;
+    const ccol = chg == null ? 'var(--text3)' : up ? '#16c784' : chg < 0 ? '#ff4d4d' : 'var(--text3)';
+    const lp = c.long_pct;
+    const bar = lp == null ? '' : `
+      <div class="oi-lsbar">
+        <div class="oi-long" style="width:${lp}%"></div>
+        <div class="oi-short" style="width:${(100 - lp).toFixed(1)}%"></div>
+      </div>
+      <div class="oi-lslab">
+        <span style="color:#16c784">${lp.toFixed(1)}% long</span>
+        <span style="color:#ff4d4d">${(100 - lp).toFixed(1)}% short</span>
+      </div>`;
+    return `
+      <div class="oi-row" style="${i === arr.length - 1 ? 'border-bottom:none' : ''}">
+        <div class="oi-top">
+          <span class="oi-sym">${esc(c.symbol)}</span>
+          <span class="oi-val">${c.oi_usd != null ? fmtUsdShort(c.oi_usd) : '\u2014'}
+            ${chg != null ? `<span style="color:${ccol};font-size:10.5px;margin-left:5px">${up ? '+' : ''}${chg.toFixed(2)}%</span>` : ''}
+          </span>
+        </div>
+        ${bar}
+      </div>`;
+  }).join('');
+  return `
+    <div class="mk-head"><div class="section-title">Open interest &amp; positioning</div></div>
+    <div class="mk-card">${body}</div>
+    <div class="fr-note">Open interest is total value of open contracts, with its 24h change. The bar is the share of Binance accounts holding long versus short.</div>`;
+}
+
 function renderMarket() {
   if (!MARKET) {
     return `<div class="section-title" style="margin:26px 2px 10px">Top 10 coins</div>
@@ -739,6 +844,8 @@ function renderMarket() {
         ${marketShowAll ? 'Show less' : 'Show all ' + MARKET.coins.length}
       </div>` : ''}
     </div>
+    ${renderFunding()}
+    ${renderOpenInterest()}
     ${MARKET.fng ? `
     <div class="mk-head"><div class="section-title">Fear &amp; greed</div></div>
     <div class="mk-card" style="padding:16px 16px 18px">${fngGauge(MARKET.fng.value, MARKET.fng.label, MARKET.fng.history)}</div>` : ''}`;
