@@ -170,7 +170,7 @@
   @keyframes fngSweep { from { transform: rotate(-90deg); } to { transform: rotate(0deg); } }
   .fng-needle { transform-box: fill-box; transform-origin: 50% 50%; animation: fngSweep 1.15s cubic-bezier(.34,1.3,.5,1) both; }
   /* living background: slow aurora wash + drifting dots in the band colour */
-  .fng-wrap { position: relative; overflow: hidden; border-radius: 10px; margin: -4px -4px 0; padding: 4px; }
+  .fng-wrap { position: relative; overflow: hidden; border-radius: 10px; margin: -16px -16px -18px; padding: 16px 16px 18px; }
   .fng-bgfx { position:absolute; inset:-40%; pointer-events:none; opacity:.5;
               background: radial-gradient(closest-side, var(--fc) 0%, transparent 62%);
               filter: blur(26px); animation: fngDrift 17s ease-in-out infinite; }
@@ -192,7 +192,7 @@
               border-radius:50%; pointer-events:none; animation: fngBreathe 5.5s ease-in-out infinite; }
   @keyframes fngBreathe { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.1);opacity:1} }
   .fng-ping { transform-box: fill-box; transform-origin: 50% 50%; animation: fngPing 2.8s ease-out infinite; }
-  @keyframes fngPing { 0%{transform:scale(1);opacity:.7} 70%{transform:scale(2.5);opacity:0} 100%{opacity:0} }
+  @keyframes fngPing { 0%{transform:scale(1);opacity:.7} 70%{transform:scale(1.75);opacity:0} 100%{opacity:0} }
   .fng-arcs path { animation: fngArcIn .8s ease-out both; }
   @keyframes fngArcIn { from { opacity:0 } to { opacity:1 } }
   .fng-num { font-size:42px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums;
@@ -595,7 +595,7 @@ function fngGauge(v, label, hist) {
           <circle cx="${tipX}" cy="${tipY}" r="4.6" fill="#fff" filter="url(#fgGlow)"/>
           <circle cx="${tipX}" cy="${tipY}" r="2.2" fill="${col}"/>
         </g>
-        <circle class="fng-ping" cx="120" cy="110" r="11" fill="none" stroke="${col}" stroke-width="2"/>
+        <circle class="fng-ping" cx="120" cy="110" r="9" fill="none" stroke="${col}" stroke-width="2"/>
         <circle cx="120" cy="110" r="11" fill="var(--bg3)"/>
         <circle cx="120" cy="110" r="11" fill="none" stroke="${col}" stroke-width="2.5" filter="url(#fgGlow)"/>
         <circle cx="120" cy="110" r="4" fill="${col}"/>
