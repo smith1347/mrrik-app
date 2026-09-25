@@ -169,6 +169,16 @@
   /* MARKET WIDGET */
   @keyframes fngSweep { from { transform: rotate(-90deg); } to { transform: rotate(0deg); } }
   .fng-needle { transform-box: fill-box; transform-origin: 50% 50%; animation: fngSweep 1.15s cubic-bezier(.34,1.3,.5,1) both; }
+  /* PRO GAUGE: needle is drawn at its true angle; the animation only sweeps
+     it in from 0 around the real hub (170,150), so it is correct even if the
+     animation never runs. */
+  .fg2-wrap { margin: -4px -6px 0; padding: 4px 6px 2px; border-radius: 12px; }
+  .fg2-needle { transform-box: view-box; transform-origin: 170px 150px;
+                animation: fg2Sweep 1.3s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fg2Sweep { from { transform: rotate(var(--fg2-from)); } to { transform: rotate(0deg); } }
+  .fg2-num { text-align:center; font-size:52px; font-weight:800; line-height:1; margin-top:2px;
+             font-variant-numeric: tabular-nums; letter-spacing:-1px; animation: fngPop .7s cubic-bezier(.2,1.3,.4,1) both; }
+  .fg2-lbl { text-align:center; font-size:13px; font-weight:800; letter-spacing:2.2px; text-transform:uppercase; margin-top:6px; }
   /* living background: slow aurora wash + drifting dots in the band colour */
   .fng-wrap { position: relative; overflow: hidden; border-radius: 10px; margin: -16px -16px -18px; padding: 16px 16px 18px; }
   .fng-bgfx { position:absolute; inset:-40%; pointer-events:none; opacity:.5;
@@ -206,7 +216,7 @@
   @keyframes fngBarUp { from{transform:scaleY(0);opacity:0} to{transform:scaleY(1);opacity:.9} }
   @media (prefers-reduced-motion: reduce) {
     .fng-needle, .fng-bgfx, .fng-dot, .fng-halo, .fng-ping,
-    .fng-arcs path, .fng-num, .fng-bar { animation: none; }
+    .fng-arcs path, .fng-num, .fng-bar, .fg2-needle, .fg2-num { animation: none; }
     .fng-dot { opacity:.5; }
   }
   .mk-head { display:flex; align-items:center; justify-content:space-between; margin: 26px 2px 10px; }
@@ -527,11 +537,12 @@ let MARKET = null;
 let marketShowAll = false;
 
 function fngColor(v) {
-  if (v < 25) return '#ff4d4d';
-  if (v < 45) return '#ff9f2e';
-  if (v < 55) return '#b8b3ab';
-  if (v < 75) return '#8fd14f';
-  return '#16c784';
+  // Matches the colour the continuous arc actually shows at each band.
+  if (v < 25) return '#ff3b3b';
+  if (v < 45) return '#ff8c1a';
+  if (v < 55) return '#ffd23a';
+  if (v < 75) return '#2fd46a';
+  return '#12d67e';
 }
 function fngBand(v) {
   if (v < 25) return 'Extreme fear';
@@ -599,73 +610,91 @@ function fngTrend(hist, col) {
     <div class="fng-bars">${bars}</div>`;
 }
 
+// PRO GAUGE: continuous gradient arc, inner ticks, band labels, tapered
+// glowing needle. Geometry and needle angle are baked into the markup, so
+// the reading is correct even if the sweep animation never runs.
 function fngGauge(v, label, hist) {
-  const val   = Math.max(0, Math.min(100, Number(v) || 0));
-  const angle = +(-90 + val * 1.8).toFixed(2);   // avoid 1e-15 float dust in the CSS
-  const col   = fngColor(val);
-  const rad   = (angle - 90) * Math.PI / 180;
-  const tipX  = (120 + Math.cos(rad) * 72).toFixed(1);
-  const tipY  = (110 + Math.sin(rad) * 72).toFixed(1);
+  const val = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+  const col = fngColor(val);
+  const CX = 170, CY = 150, R = 110;
+  const rad = (vv) => (180 - vv * 1.8) * Math.PI / 180;
+  const pt  = (vv, r) => [(CX + r * Math.cos(rad(vv))).toFixed(1), (CY - r * Math.sin(rad(vv))).toFixed(1)];
+  const arc = (r) => `M ${CX - r} ${CY} A ${r} ${r} 0 0 1 ${CX + r} ${CY}`;
+
+  let ticks = '';
+  for (let t = 0; t <= 100; t += 5) {
+    const major = t % 25 === 0;
+    const [x1, y1] = pt(t, 97), [x2, y2] = pt(t, major ? 86 : 91);
+    ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,${major ? .38 : .15})" stroke-width="${major ? 1.4 : 1}" stroke-linecap="round"/>`;
+  }
+  let seps = '';
+  for (const b of [25, 45, 55, 75]) {
+    const [x1, y1] = pt(b, R - 9), [x2, y2] = pt(b, R + 9);
+    seps += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0b0b0b" stroke-width="2.4"/>`;
+  }
+  const [mx1, my1] = pt(val, R - 8), [mx2, my2] = pt(val, R + 8);
+
+  // tapered needle: tip, two base shoulders at the hub, short tail behind it
+  const t = rad(val), p = t + Math.PI / 2;
+  const [tx, ty] = pt(val, 84);
+  const b1 = [(CX + 3.4 * Math.cos(p)).toFixed(1), (CY - 3.4 * Math.sin(p)).toFixed(1)];
+  const b2 = [(CX - 3.4 * Math.cos(p)).toFixed(1), (CY + 3.4 * Math.sin(p)).toFixed(1)];
+  const tl = [(CX - 12 * Math.cos(t)).toFixed(1), (CY + 12 * Math.sin(t)).toFixed(1)];
+
+  const band = val < 25 ? 0 : val < 45 ? 1 : val < 55 ? 2 : val < 75 ? 3 : 4;
+  const lc = (i) => i === band ? col : '#7d7d7d';
+  const lw = (i) => i === band ? 700 : 600;
+  const [fx, fy] = pt(22, R + 24), [nx, ny] = pt(50, R + 24), [gx, gy] = pt(78, R + 24);
+  const L = (x, y, anchor, i, txt) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${lc(i)}" font-size="9.5" font-weight="${lw(i)}" letter-spacing="1.1">${txt}</text>`;
+
   return `
-  <div class="fng-wrap">
-    <div class="fng-bgfx" style="--fc:${col}"></div>
-    <div class="fng-dots">${fngDots(col)}</div>
-    <div style="position:relative">
-      <div class="fng-halo" style="background:radial-gradient(circle,${col}26 0%,transparent 68%)"></div>
-      <svg viewBox="0 0 240 126" width="100%" height="120" style="position:relative;display:block" role="img" aria-label="Fear and greed index ${val} out of 100, ${esc(label||'')}">
-        <defs>
-          <linearGradient id="fgA" x1="0" y1="1" x2="0.3" y2="0"><stop offset="0" stop-color="#c9262d"/><stop offset="1" stop-color="#ff5b5b"/></linearGradient>
-          <linearGradient id="fgB" x1="0" y1="1" x2="0.6" y2="0"><stop offset="0" stop-color="#e07b12"/><stop offset="1" stop-color="#ffb545"/></linearGradient>
-          <linearGradient id="fgC" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f8a82"/><stop offset="1" stop-color="#cdc8c0"/></linearGradient>
-          <linearGradient id="fgD" x1="0.4" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a8dd63"/><stop offset="1" stop-color="#69ac35"/></linearGradient>
-          <linearGradient id="fgE" x1="0.7" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1fe0a0"/><stop offset="1" stop-color="#0e9c68"/></linearGradient>
-          <filter id="fgGlow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <g class="fng-arcs">
-          <path d="M26 110 A 94 94 0 0 1 50.1 45.6"      stroke="#0d0906" stroke-width="17" fill="none" stroke-linecap="round"/>
-          <path d="M57.3 39.2 A 94 94 0 0 1 97.1 18.4"   stroke="#0d0906" stroke-width="17" fill="none" stroke-linecap="round"/>
-          <path d="M106.6 16.9 A 94 94 0 0 1 133.4 16.9" stroke="#0d0906" stroke-width="17" fill="none" stroke-linecap="round"/>
-          <path d="M145.5 18.4 A 94 94 0 0 1 185.3 39.2" stroke="#0d0906" stroke-width="17" fill="none" stroke-linecap="round"/>
-          <path d="M192.5 45.6 A 94 94 0 0 1 214 110"    stroke="#0d0906" stroke-width="17" fill="none" stroke-linecap="round"/>
-          <path d="M26 110 A 94 94 0 0 1 50.1 45.6"      stroke="rgba(255,255,255,.20)" stroke-width="14.6" fill="none" stroke-linecap="round"/>
-          <path d="M57.3 39.2 A 94 94 0 0 1 97.1 18.4"   stroke="rgba(255,255,255,.20)" stroke-width="14.6" fill="none" stroke-linecap="round"/>
-          <path d="M106.6 16.9 A 94 94 0 0 1 133.4 16.9" stroke="rgba(255,255,255,.20)" stroke-width="14.6" fill="none" stroke-linecap="round"/>
-          <path d="M145.5 18.4 A 94 94 0 0 1 185.3 39.2" stroke="rgba(255,255,255,.20)" stroke-width="14.6" fill="none" stroke-linecap="round"/>
-          <path d="M192.5 45.6 A 94 94 0 0 1 214 110"    stroke="rgba(255,255,255,.20)" stroke-width="14.6" fill="none" stroke-linecap="round"/>
-          <path d="M26 110 A 94 94 0 0 1 50.1 45.6"      stroke="url(#fgA)" stroke-width="13" fill="none" stroke-linecap="round"/>
-          <path d="M57.3 39.2 A 94 94 0 0 1 97.1 18.4"   stroke="url(#fgB)" stroke-width="13" fill="none" stroke-linecap="round"/>
-          <path d="M106.6 16.9 A 94 94 0 0 1 133.4 16.9" stroke="url(#fgC)" stroke-width="13" fill="none" stroke-linecap="round"/>
-          <path d="M145.5 18.4 A 94 94 0 0 1 185.3 39.2" stroke="url(#fgD)" stroke-width="13" fill="none" stroke-linecap="round"/>
-          <path d="M192.5 45.6 A 94 94 0 0 1 214 110"    stroke="url(#fgE)" stroke-width="13" fill="none" stroke-linecap="round"/>
-        </g>
-        <g class="fng-needle" style="--fng-to:${angle}deg">
-          <line x1="120" y1="110" x2="${tipX}" y2="${tipY}" stroke="${col}" stroke-width="3.5" stroke-linecap="round" filter="url(#fgGlow)"/>
-          <circle cx="${tipX}" cy="${tipY}" r="4.6" fill="#fff" filter="url(#fgGlow)"/>
-          <circle cx="${tipX}" cy="${tipY}" r="2.2" fill="${col}"/>
-        </g>
-        <circle class="fng-ping" cx="120" cy="110" r="9" fill="none" stroke="${col}" stroke-width="2"/>
-        <circle cx="120" cy="110" r="11" fill="var(--bg3)"/>
-        <circle cx="120" cy="110" r="11" fill="none" stroke="${col}" stroke-width="2.5" filter="url(#fgGlow)"/>
-        <circle cx="120" cy="110" r="4" fill="${col}"/>
-      </svg>
-      <div style="display:flex;justify-content:space-between;color:var(--text3);font-size:10px;padding:0 4px;margin-top:2px">
-        <span>0 &middot; Extreme fear</span><span>Extreme greed &middot; 100</span>
-      </div>
-      <div style="text-align:center;margin-top:10px">
-        <div class="fng-num" style="color:${col};text-shadow:0 0 24px ${col}55">${val}</div>
-        <div style="font-size:13px;font-weight:600;color:${col};margin-top:5px;letter-spacing:.3px">${esc(label || fngBand(val))}</div>
-      </div>
-      ${fngTrend(hist, col)}
-      <div class="mk-sent" style="border-color:${col}44">
-        <div class="mk-sent-h" style="color:${col}">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M8 2.5a2 2 0 0 0-2 2v.2a1.8 1.8 0 0 0-1.5 1.8c0 .3.1.6.2.8a1.8 1.8 0 0 0 .4 3.2c0 1.1.9 2 2 2a1.6 1.6 0 0 0 1.4-.8"/><path d="M8 2.5a2 2 0 0 1 2 2v.2a1.8 1.8 0 0 1 1.5 1.8c0 .3-.1.6-.2.8a1.8 1.8 0 0 1-.4 3.2c0 1.1-.9 2-2 2a1.6 1.6 0 0 1-1.4-.8"/><path d="M8 2.5v11"/></svg>
-          Market sentiment
-        </div>
-        <div class="mk-sent-b">${fngNote(val)}</div>
-      </div>
-    </div>
+  <div class="fg2-wrap" style="background:radial-gradient(ellipse 70% 60% at 50% 72%, ${col}24 0%, transparent 70%)">
+    <svg viewBox="-16 0 372 172" width="100%" style="display:block;overflow:visible" role="img"
+         aria-label="Fear and greed index ${val} out of 100, ${esc(label || fngBand(val))}">
+      <defs>
+        <linearGradient id="fg2Arc" gradientUnits="userSpaceOnUse" x1="${CX - R}" y1="0" x2="${CX + R}" y2="0">
+          <stop offset="0"    stop-color="#ff2e2e"/>
+          <stop offset="0.2"  stop-color="#ff5a1f"/>
+          <stop offset="0.38" stop-color="#ff9a1f"/>
+          <stop offset="0.5"  stop-color="#ffd23a"/>
+          <stop offset="0.64" stop-color="#b8e23a"/>
+          <stop offset="0.82" stop-color="#3fdc5c"/>
+          <stop offset="1"    stop-color="#12c76a"/>
+        </linearGradient>
+        <linearGradient id="fg2Needle" gradientUnits="userSpaceOnUse" x1="${CX}" y1="${CY}" x2="${tx}" y2="${ty}">
+          <stop offset="0" stop-color="${col}"/><stop offset="1" stop-color="#ffffff"/>
+        </linearGradient>
+        <filter id="fg2Glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="fg2Blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+      </defs>
+      <path d="${arc(R + 16)}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+      <path d="${arc(R)}" fill="none" stroke="url(#fg2Arc)" stroke-width="15" opacity=".5" filter="url(#fg2Blur)"/>
+      <path d="${arc(R)}" fill="none" stroke="url(#fg2Arc)" stroke-width="15"/>
+      ${seps}
+      ${ticks}
+      <line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}" stroke="#fff" stroke-width="3" stroke-linecap="round" filter="url(#fg2Glow)"/>
+      ${L(44, 118, 'end', 0, 'EXTREME')}${L(44, 130, 'end', 0, 'FEAR')}
+      ${L(fx, fy, 'middle', 1, 'FEAR')}
+      ${L(nx, ny, 'middle', 2, 'NEUTRAL')}
+      ${L(gx, gy, 'middle', 3, 'GREED')}
+      ${L(296, 118, 'start', 4, 'EXTREME')}${L(296, 130, 'start', 4, 'GREED')}
+      <g class="fg2-needle" style="--fg2-from:${-(val * 1.8)}deg">
+        <polygon points="${tx},${ty} ${b1[0]},${b1[1]} ${tl[0]},${tl[1]} ${b2[0]},${b2[1]}" fill="url(#fg2Needle)" filter="url(#fg2Glow)"/>
+      </g>
+      <circle cx="${CX}" cy="${CY}" r="15" fill="#0c0c0c" stroke="${col}" stroke-width="2.2" filter="url(#fg2Glow)"/>
+      <circle cx="${CX}" cy="${CY}" r="9.5" fill="none" stroke="${col}" stroke-opacity=".35" stroke-width="1"/>
+      <circle cx="${CX}" cy="${CY}" r="4.6" fill="#ffffff"/>
+    </svg>
+    <div class="fg2-num" style="color:${col};text-shadow:0 0 28px ${col}66">${val}</div>
+    <div class="fg2-lbl" style="color:${col}">${esc(label || fngBand(val))}</div>
+  </div>
+  ${fngTrend(hist, col)}
+  <div class="mk-sent" style="border-color:${col}44">
+    <div class="mk-sent-h" style="color:${col}">Market sentiment</div>
+    <div class="mk-sent-b">${fngNote(val)}</div>
   </div>`;
 }
 
