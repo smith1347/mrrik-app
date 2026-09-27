@@ -339,6 +339,31 @@
   .empty-state { text-align: center; padding: 28px 16px; color: var(--text3); font-size: 13px; }
 
 
+
+  /* SETTINGS ROWS: redesigned Account / Controls / Info */
+  .sr-grp { border-radius:16px; border:1px solid #232323; overflow:hidden;
+    background:radial-gradient(110% 60% at 0% 0%, rgba(232,93,4,0.10), transparent 60%), #121212; }
+  .sr-grp.dz { border-color:rgba(239,68,68,0.3); background:radial-gradient(110% 80% at 0% 0%, rgba(239,68,68,0.08), transparent 60%), #121212; }
+  .sr { display:flex; align-items:center; gap:12px; padding:12px 13px; border-top:1px solid #1d1d1d; cursor:pointer; transition:background 0.15s; }
+  .sr:first-child { border-top:none; }
+  .sr:active { background:rgba(255,255,255,0.03); }
+  .sr.static { cursor:default; }
+  .sr-ic { width:34px; height:34px; flex:0 0 34px; border-radius:10px; border:1px solid rgba(232,93,4,0.35); background:rgba(232,93,4,0.1); color:var(--orange2); display:flex; align-items:center; justify-content:center; }
+  .sr-ic.red { border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.1); color:var(--red); }
+  .sr-tx { flex:1; min-width:0; }
+  .sr-t { font-size:14px; font-weight:600; color:var(--text); }
+  .sr-t.red { color:var(--red); }
+  .sr-s { font-size:11px; color:#777; margin-top:2px; line-height:1.35; }
+  .sr-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; vertical-align:1px; }
+  .sr-val { font-size:12px; color:#888; white-space:nowrap; }
+  .sr-chev { color:#555; font-size:18px; margin-left:2px; flex:0 0 auto; }
+  .sr-right { display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+  .sr-badge { font-size:10px; font-weight:800; padding:3px 8px; border-radius:20px; letter-spacing:0.3px; white-space:nowrap; }
+  .sr-badge.ok  { color:var(--green); background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.35); }
+  .sr-badge.amb { color:#eab308; background:rgba(234,179,8,0.12); border:1px solid rgba(234,179,8,0.35); }
+  .sr-badge.bad { color:var(--red); background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); }
+  .st-danger { color:var(--red) !important; }
+  .st-danger::before { background:var(--red) !important; }
   /* QUICK CONTROLS: redesigned tiles */
   .qc-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin-bottom:10px; }
   .qc-t { position:relative; overflow:hidden; border-radius:16px; border:1px solid #232323; padding:13px 13px 12px; min-height:118px; cursor:pointer;
@@ -536,6 +561,7 @@ let histFilter = 'all';     // all | wins | losses
 // REFERRAL: partner program card (Settings). null = not loaded yet -> no card.
 let MYREF = null;
 let refShowAll = false;
+let LAST_LOAD = 0;   // SETTINGS ROWS
 
 // ── Formatters ──────────────────────────────────────
 function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
@@ -1219,6 +1245,7 @@ async function loadData(silent=false) {
     DEMO_TRADES  = demoData.trades        || [];   // backwards compat (open+closed)
     OPEN_DEMO    = demoData.open_trades   || DEMO_TRADES.filter(t => t.status === 'OPEN');
     CLOSED_DEMO  = demoData.closed_trades || DEMO_TRADES.filter(t => t.status !== 'OPEN');
+    LAST_LOAD    = Date.now();   // SETTINGS ROWS: shown as "Updated ... ago"
     document.getElementById('live-dot').style.background = 'var(--green)';
     goTo(currentTab, true);
   } catch(e) {
@@ -1450,15 +1477,13 @@ function toggleDemo() {
     else showToast('Open from Telegram to use this');
     showToast('Stopping demo mode...');
     USER.is_demo = false;
-    document.querySelector('[onclick="toggleDemo()"] .pill').textContent = 'Off';
-    document.querySelector('[onclick="toggleDemo()"] .pill').className = 'pill inactive';
+    goTo(currentTab, true);   // SETTINGS ROWS: redraw; the row no longer has a pill
   } else {
     if (tg) tg.openTelegramLink(`https://t.me/${BOT_USERNAME}?start=demo`);
     else showToast('Open from Telegram to use this');
     showToast('Starting demo mode...');
     USER.is_demo = true;
-    document.querySelector('[onclick="toggleDemo()"] .pill').textContent = 'Active';
-    document.querySelector('[onclick="toggleDemo()"] .pill').className = 'pill active';
+    goTo(currentTab, true);   // SETTINGS ROWS
   }
 }
 
@@ -2041,6 +2066,127 @@ function renderDemo() {
 }
 
 // ── Render: Settings ─────────────────────────────────
+// ── SETTINGS ROWS ───────────────────────────────────
+// Same visual language as the home Quick Controls, as a settings list.
+function srIcon(p) {
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+}
+const SR_I = {
+  shield:  srIcon('<path d="M12 3 5 6v5c0 4.4 3 8.3 7 10 4-1.7 7-5.6 7-10V6z"/><path d="m9 12 2 2 4-4"/>'),
+  link:    srIcon('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  flask:   srIcon('<path d="M9 3h6"/><path d="M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>'),
+  power:   srIcon('<path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/>'),
+  unlink:  srIcon('<path d="M10 14a4 4 0 0 0 5.7 0l1.3-1.3"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/><path d="m15 5 1-1a4 4 0 0 1 5.7 5.7"/><path d="M3 3l18 18"/>'),
+  refresh: srIcon('<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>'),
+  chat:    srIcon('<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/><path d="M8 9h8M8 12.5h5"/>'),
+  plane:   srIcon('<path d="M21 4 3 11l6 2 2 6 3-4 4 3z"/><path d="m9 13 8-6"/>'),
+  camera:  srIcon('<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="0.8" fill="currentColor"/>'),
+};
+const SR_CHEV = '<span class="sr-chev">\u203a</span>';
+function srRow(icon, title, sub, right, onclick, red) {
+  return `<div class="sr${onclick ? '' : ' static'}"${onclick ? ` onclick="${onclick}"` : ''}>
+      <div class="sr-ic${red ? ' red' : ''}">${SR_I[icon]}</div>
+      <div class="sr-tx"><div class="sr-t${red ? ' red' : ''}">${title}</div><div class="sr-s">${sub}</div></div>
+      <div class="sr-right">${right}</div>
+    </div>`;
+}
+function srOpenTg(url) {
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+}
+function srScrollRenew() {
+  const el = document.getElementById('renew-card');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function srAgo(ts) {
+  if (!ts) return 'Tap to reload';
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return 'Updated just now';
+  if (m === 1) return 'Updated 1 min ago';
+  if (m < 60) return `Updated ${m} min ago`;
+  return `Updated ${Math.floor(m / 60)} h ago`;
+}
+
+function renderAccountRows() {
+  const sub = USER.subscription || {};
+  const dl = Number(sub.days_left);
+  let subLine, badge;
+  if (!USER.is_active) {
+    subLine = '<span class="sr-dot" style="background:var(--red)"></span>Not activated';
+    badge = '<span class="sr-badge bad">INACTIVE</span>';
+  } else if (sub.is_lifetime) {
+    subLine = '<span class="sr-dot" style="background:var(--green)"></span>Lifetime access';
+    badge = '<span class="sr-badge ok">ACTIVE</span>';
+  } else if (Number.isFinite(dl) && dl <= 0) {
+    subLine = '<span class="sr-dot" style="background:var(--red)"></span>Expired \u00b7 renew to continue';
+    badge = '<span class="sr-badge bad">EXPIRED</span>';
+  } else if (Number.isFinite(dl) && dl <= 7) {
+    subLine = `<span class="sr-dot" style="background:#eab308"></span>${dl} day${dl === 1 ? '' : 's'} left \u00b7 until ${refShort(sub.expires)}`;
+    badge = '<span class="sr-badge amb">ENDING</span>';
+  } else {
+    subLine = `<span class="sr-dot" style="background:var(--green)"></span>${sub.expires ? 'Until ' + refShort(sub.expires) : 'Active'}`;
+    badge = '<span class="sr-badge ok">ACTIVE</span>';
+  }
+
+  const hasKey = !!USER.has_api_key;
+  const binSub = hasKey ? 'Connected \u00b7 trading enabled' : '<span style="color:#ff914d">Required for real trading</span>';
+  const binRight = hasKey ? '<span class="sr-badge ok">\u2713 ON</span>' : '<span class="qc-chip">Connect</span>';
+  const binClick = hasKey ? '' : "openBotCommand('connect')";
+
+  const d = USER.demo || {};
+  let demoSub = 'Practise with virtual funds';
+  if (USER.is_demo) {
+    const dv = Number(d.total_value) || 0, start = Number(d.starting_balance) || 0;
+    const ret = Number.isFinite(Number(d.total_return)) ? Number(d.total_return) : dv - start;
+    let chg = '';
+    if (start) {
+      const pct = ret / start * 100, up = ret >= 0;
+      const col = Math.abs(ret) < 0.005 ? '#888' : (up ? 'var(--green)' : 'var(--red)');
+      chg = ` \u00b7 <span style="color:${col}">${up ? '+' : '\u2212'}${Math.abs(pct).toFixed(1)}%</span>`;
+    }
+    demoSub = `$${fmtB(dv)}${chg}`;
+  }
+
+  return `<div class="sr-grp">
+      ${srRow('shield', 'Subscription', subLine, badge + SR_CHEV, 'srScrollRenew()')}
+      ${srRow('link', 'Binance API', binSub, binRight, binClick)}
+      ${srRow('flask', 'Demo mode', demoSub, `<div class="qc-sw ${USER.is_demo ? 'on' : ''}"></div>`, 'toggleDemo()')}
+    </div>`;
+}
+
+function renderControlInfoRows() {
+  const paused = !!USER.is_paused, hasKey = !!USER.has_api_key;
+  let atSub;
+  if (paused)       atSub = '<span class="sr-dot" style="background:#eab308"></span>Paused \u00b7 no new trades';
+  else if (!hasKey) atSub = '<span class="sr-dot" style="background:#eab308"></span>Standby \u00b7 connect Binance';
+  else              atSub = '<span class="sr-dot" style="background:var(--green)"></span>Live \u00b7 copying every signal';
+
+  let h = `
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Controls</div>
+      <div class="sr-grp">
+        ${srRow('power', 'Auto-trading', atSub, `<div class="qc-sw ${paused ? '' : 'on'}"></div>`, 'togglePause()')}
+      </div>`;
+
+  // Disconnect only exists when there is something to disconnect.
+  if (hasKey) {
+    h += `
+      <div class="section-title st-danger" style="margin-bottom:8px;margin-top:14px">Danger zone</div>
+      <div class="sr-grp dz">
+        ${srRow('unlink', 'Disconnect Binance', 'Stops real trading and removes your API key', SR_CHEV, "openBotCommand('disconnect')", true)}
+      </div>`;
+  }
+
+  h += `
+      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Info</div>
+      <div class="sr-grp">
+        ${srRow('refresh', 'Refresh data', srAgo(LAST_LOAD), SR_CHEV, 'loadData()')}
+        ${srRow('chat', 'Support', 'Questions and account activation', '<span class="sr-val">@Leonit99</span>' + SR_CHEV, "srOpenTg('https://t.me/Leonit99')")}
+        ${srRow('plane', 'Telegram channel', 'News and updates', '<span class="sr-val">@MRRIKAI</span>' + SR_CHEV, "srOpenTg('https://t.me/MRRIKAI')")}
+        ${srRow('camera', 'Instagram', '@mrriktradingai', SR_CHEV, "window.open('https://www.instagram.com/mrriktradingai/','_blank')")}
+      </div>`;
+  return h;
+}
+// ── /SETTINGS ROWS
+
 function renderSettings() {
   const sub = USER.subscription || {};
   const dl = sub.days_left;
@@ -2131,7 +2277,7 @@ function renderSettings() {
       </div>
 
       <!-- Payment box -->
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+      <div id="renew-card" style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
         <div style="font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex;width:14px;height:14px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="4" width="12" height="8.5" rx="1.3"/><path d="M2 7h12"/><path d="M4 10h3"/></svg></span>Subscribe / Renew</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
           <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center">
@@ -2166,35 +2312,7 @@ function renderSettings() {
       </div>
 
       <div class="section-title" style="margin-bottom:8px">Account</div>
-      <div class="settings-group">
-        <div class="settings-row">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></div>
-            <div style="font-size:13px;color:var(--text)">Account status</div>
-          </div>
-          <span class="pill ${USER.is_active?'active':'inactive'}">${USER.is_active?'Active':'Inactive'}</span>
-        </div>
-        <div class="settings-row" onclick="if(!USER.has_api_key){if(tg)tg.openTelegramLink('https://t.me/${BOT_USERNAME}?start=connect');else window.open('https://t.me/${BOT_USERNAME}?start=connect','_blank')}">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="4.5" cy="8" r="2.5"/><path d="M6.8 8H13"/><path d="M10.5 8V10"/><path d="M13 8V10.5"/></svg></div>
-            <div>
-              <div style="font-size:13px;color:var(--text)">Binance API</div>
-              ${!USER.has_api_key ? '<div style="font-size:10px;color:var(--orange);margin-top:2px">Tap to connect →</div>' : ''}
-            </div>
-          </div>
-          <span class="pill ${USER.has_api_key?'active':'paused'}">${USER.has_api_key?'Connected':'Not set'}</span>
-        </div>
-        <div class="settings-row" onclick="toggleDemo()" style="cursor:pointer">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--purple-dim);color:var(--purple)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-            <div>
-              <div style="font-size:13px;color:var(--text)">Demo mode</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px">${USER.is_demo?'Tap to stop demo':'Tap to start demo'}</div>
-            </div>
-          </div>
-          <span class="pill ${USER.is_demo?'active':'inactive'}">${USER.is_demo?'Active':'Off'}</span>
-        </div>
-      </div>
+      ${renderAccountRows()}
       <div class="section-title" style="margin-bottom:8px;margin-top:14px">Trade amount</div>
       <div class="input-row">
         <div class="input-lbl">Amount per signal (real trades)</div>
@@ -2216,77 +2334,7 @@ function renderSettings() {
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
-      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Controls</div>
-      <div class="settings-group">
-        <div class="settings-row" onclick="togglePause()">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)">${USER.is_paused?'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><path d="M4.5 3 13 8 4.5 13Z"/></svg>':'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><rect x="4.5" y="3" width="2.5" height="10" rx="0.8"/><rect x="9" y="3" width="2.5" height="10" rx="0.8"/></svg>'}</div>
-            <div style="font-size:13px;color:var(--text)">${USER.is_paused?'Resume trading':'Pause trading'}</div>
-          </div>
-          <span class="pill ${USER.is_paused?'paused':'active'}">${USER.is_paused?'Paused':'Active'}</span>
-        </div>
-        <div class="settings-row" onclick="openBotCommand('disconnect')">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--red-dim);color:var(--red)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M5 2v3"/><path d="M11 2v3"/><path d="M3.5 5h9v3a4.5 4.5 0 0 1-9 0V5Z"/><path d="M8 12.5v2"/><path d="M2 14 14 2"/></svg></div>
-            <div style="font-size:13px;color:var(--red)">Disconnect Binance</div>
-          </div>
-          <div style="font-size:16px;color:var(--text3)">›</div>
-        </div>
-      </div>
-      <div class="section-title" style="margin-bottom:8px;margin-top:14px">Info</div>
-      <div class="settings-group">
-        <div class="settings-row" onclick="loadData()">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></div>
-            <div style="font-size:13px;color:var(--text)">Refresh data</div>
-          </div>
-          <div style="font-size:16px;color:var(--text3)">›</div>
-        </div>
-        <div class="settings-row" onclick="if(tg)tg.openTelegramLink('https://t.me/Leonit99');else window.open('https://t.me/Leonit99','_blank')">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:var(--orange-dim);color:var(--orange)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2.5 4.5a1.5 1.5 0 0 1 1.5-1.5h8a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7l-3 2.5v-2.5H4a1.5 1.5 0 0 1-1.5-1.5v-5Z"/></svg></div>
-            <div style="font-size:13px;color:var(--text)">Support</div>
-          </div>
-          <div style="font-size:13px;color:var(--text3)">@Leonit99</div>
-        </div>
-        <div class="settings-row" onclick="if(tg)tg.openTelegramLink('https://t.me/MRRIKAI');else window.open('https://t.me/MRRIKAI','_blank')">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(41,182,246,0.12);overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.48.7-.96.44l-2.64-1.94-1.28 1.22c-.14.14-.26.26-.54.26l.2-2.72 4.96-4.48c.22-.2-.04-.3-.34-.1L8.06 14.4l-2.6-.82c-.56-.18-.58-.56.12-.82l10.2-3.94c.46-.18.88.1.86.98z" fill="#29B6F6"/>
-              </svg>
-            </div>
-            <div>
-              <div style="font-size:13px;color:var(--text)">Telegram Channel</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:1px">News & updates</div>
-            </div>
-          </div>
-          <div style="font-size:13px;color:var(--text3)">@MRRIKAI</div>
-        </div>
-        <div class="settings-row" onclick="window.open('https://www.instagram.com/mrriktradingai/','_blank')" style="border-bottom:none">
-          <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:rgba(225,48,108,0.12);overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#f09433"/>
-                    <stop offset="25%" style="stop-color:#e6683c"/>
-                    <stop offset="50%" style="stop-color:#dc2743"/>
-                    <stop offset="75%" style="stop-color:#cc2366"/>
-                    <stop offset="100%" style="stop-color:#bc1888"/>
-                  </linearGradient>
-                </defs>
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#ig)"/>
-              </svg>
-            </div>
-            <div>
-              <div style="font-size:13px;color:var(--text)">Instagram</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:1px">@mrriktradingai</div>
-            </div>
-          </div>
-          <div style="font-size:16px;color:var(--text3)">›</div>
-        </div>
-      </div>
+      ${renderControlInfoRows()}
       <div style="text-align:center;padding:20px 0 16px">
         <div style="font-size:11px;color:var(--text3)">MRRIK Trading AI · v2.1</div>
         <div style="font-size:10px;color:var(--text3);margin-top:3px;opacity:0.5">All signals are for informational purposes only.</div>
