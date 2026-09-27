@@ -466,6 +466,9 @@ let showAllClosed = false;  // toggle for demo history list
 // re-render that goTo() triggers.
 let histSort   = 'newest';  // newest | oldest | profit | loss
 let histFilter = 'all';     // all | wins | losses
+// REFERRAL: partner program card (Settings). null = not loaded yet -> no card.
+let MYREF = null;
+let refShowAll = false;
 
 // ── Formatters ──────────────────────────────────────
 function fmt(n)  { return Math.abs(parseFloat(n)).toFixed(2); }
@@ -895,6 +898,123 @@ async function loadMarket() {
   }
 }
 // ── /MARKET WIDGET
+
+// ── REFERRAL: partner program ───────────────────────
+// Own cadence and own failure domain, like the market widget. The endpoint
+// identifies the caller from the signed Telegram initData only -- it exposes
+// other people's usernames, so a user_id in the request is never trusted.
+async function loadMyReferrals() {
+  const initData = (tg && tg.initData) || '';
+  if (!initData) return;                       // outside Telegram: no card
+  try {
+    const r = await fetch(`${API_BASE}/api/my_referrals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ init_data: initData })
+    });
+    if (!r.ok) return;                         // 401/5xx: keep last good data
+    const d = await r.json();
+    if (!d || typeof d.is_partner !== 'boolean') return;
+    MYREF = d;
+  } catch (e) {
+    return;                                    // network error: keep last good data
+  }
+  if (currentTab === 'settings') {
+    const el = document.getElementById('ref-slot');
+    if (el) el.innerHTML = renderReferralCard();
+  }
+}
+
+function refDay(s) {
+  if (!s) return '\u2014';
+  const d = new Date(String(s).slice(0, 10) + 'T00:00:00');
+  if (isNaN(d)) return esc(s);
+  return d.toLocaleDateString('en-US', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function copyRefLink(i) {
+  const l = MYREF && MYREF.links && MYREF.links[i];
+  if (l) copyText(l.link, 'Link');
+}
+function shareRefLink(i) {
+  const l = MYREF && MYREF.links && MYREF.links[i];
+  if (!l) return;
+  const url = 'https://t.me/share/url?url=' + encodeURIComponent(l.link) +
+              '&text=' + encodeURIComponent('Join MRRIK Trading AI');
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+}
+function toggleRefAll() {
+  refShowAll = !refShowAll;
+  const el = document.getElementById('ref-slot');
+  if (el) el.innerHTML = renderReferralCard();
+}
+
+function renderReferralCard() {
+  if (!MYREF || !MYREF.is_partner) return '';
+  const t = MYREF.totals || { signed_up: 0, paid: 0, active: 0 };
+  const list = Array.isArray(MYREF.referrals) ? MYREF.referrals : [];
+  const links = Array.isArray(MYREF.links) ? MYREF.links : [];
+  const shown = refShowAll ? list : list.slice(0, 10);
+
+  const linkRows = links.map((l, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:0.5px solid var(--border);border-radius:8px;padding:9px 10px;margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--orange);font-weight:700;letter-spacing:0.5px;margin-bottom:2px">${esc(l.code)}</div>
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--text2);word-break:break-all;line-height:1.35">${esc(String(l.link).replace(/^https:\/\//, ''))}</div>
+      </div>
+      <button onclick="copyRefLink(${i})" style="background:var(--orange-dim);color:var(--orange);border:0.5px solid rgba(232,93,4,0.35);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer">Copy</button>
+      <button onclick="shareRefLink(${i})" style="background:var(--orange);color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer">Share</button>
+    </div>`).join('');
+
+  const stat = (label, val, color) => `
+    <div style="flex:1;background:var(--bg3);border:0.5px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:${color}">${Number(val) || 0}</div>
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">${label}</div>
+    </div>`;
+
+  const statusLine = r => {
+    if (r.status === 'active')  return `<span style="color:var(--green)">Active</span> \u00b7 ${r.expiry === 'Lifetime' ? 'Lifetime' : 'until ' + refDay(r.expiry)}`;
+    if (r.status === 'expired') return `<span style="color:var(--red)">Expired</span> \u00b7 ${r.expiry === 'Lifetime' ? 'Lifetime' : refDay(r.expiry)}`;
+    return '<span style="color:var(--text3)">Not subscribed</span>';
+  };
+
+  const rows = shown.map(r => {
+    const who = r.username ? '@' + r.username : (r.full_name || 'MRRIK user');
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:0.5px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(who)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Joined ${refDay(r.joined)}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px">${statusLine(r)}</div>
+      </div>
+      ${r.paid
+        ? '<span style="flex:0 0 auto;background:var(--green-dim);color:var(--green);border:0.5px solid rgba(34,197,94,0.3);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.4px">PAID</span>'
+        : '<span style="flex:0 0 auto;background:var(--bg3);color:var(--text3);border:0.5px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.4px">UNPAID</span>'}
+    </div>`;
+  }).join('');
+
+  const more = list.length > 10
+    ? `<div onclick="toggleRefAll()" style="text-align:center;font-size:12px;color:var(--orange);font-weight:600;padding:10px 0 2px;cursor:pointer">${refShowAll ? 'Show less' : 'Show all ' + list.length}</div>`
+    : '';
+
+  return `
+    <div style="background:var(--bg2);border:0.5px solid rgba(232,93,4,0.35);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <span style="display:inline-flex;width:14px;height:14px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="5.5" cy="5.5" r="2.3"/><circle cx="11.5" cy="6.5" r="1.8"/><path d="M1.5 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M10.2 10c.4-.1.8-.2 1.3-.2 1.7 0 3 1.3 3 3"/></svg></span>
+        Referral Program
+      </div>
+      ${linkRows}
+      <div style="display:flex;gap:6px;margin:10px 0 4px">
+        ${stat('Signed up', t.signed_up, 'var(--text)')}
+        ${stat('Paid', t.paid, 'var(--green)')}
+        ${stat('Active', t.active, 'var(--orange)')}
+      </div>
+      ${list.length
+        ? `<div style="margin-top:8px">${rows}</div>${more}`
+        : '<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0 2px">No one has joined through your link yet. Share it to get started.</div>'}
+    </div>`;
+}
+// ── /REFERRAL
 
 function fmtDate(s) {
   if (!s) return '';
@@ -1780,6 +1900,9 @@ function renderSettings() {
         </div>
       </div>
 
+      <!-- REFERRAL: partner card (filled by loadMyReferrals) -->
+      <div id="ref-slot">${renderReferralCard()}</div>
+
       <!-- Subscription card -->
       <div style="background:${subBg};border:0.5px solid ${subBorder};border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:10px">
@@ -2056,6 +2179,7 @@ document.addEventListener('click', function(e) {
 setInterval(() => loadData(true), 60000);
 // MARKET WIDGET: own cadence, own failure domain.
 setInterval(loadMarket, 60000);
+setInterval(loadMyReferrals, 120000);   // REFERRAL
 
 // DEEPLINK FIX: every settings control (risk mode, pause, demo toggle, trade
 // amounts) updates the screen immediately and then hands off to Telegram to
@@ -2067,11 +2191,12 @@ setInterval(loadMarket, 60000);
 // and the display always settles on what the server truly has -- whether the
 // action was confirmed or cancelled.
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) loadData(true);
+  if (!document.hidden) { loadData(true); loadMyReferrals(); }   // REFERRAL
 });
 USER_ID = getUserId();
 loadData();
 loadMarket();   // MARKET WIDGET
+loadMyReferrals();   // REFERRAL
 </script>
 </body>
 </html>
