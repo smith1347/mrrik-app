@@ -338,6 +338,29 @@
   .retry-btn { margin-top: 8px; padding: 10px 24px; border-radius: var(--radius); border: 0.5px solid var(--orange); background: var(--orange-dim); color: var(--orange); font-size: 13px; cursor: pointer; }
   .empty-state { text-align: center; padding: 28px 16px; color: var(--text3); font-size: 13px; }
 
+
+  /* QUICK CONTROLS: redesigned tiles */
+  .qc-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin-bottom:10px; }
+  .qc-t { position:relative; overflow:hidden; border-radius:16px; border:1px solid #232323; padding:13px 13px 12px; min-height:118px; cursor:pointer;
+    background:radial-gradient(90% 70% at 0% 0%, rgba(232,93,4,0.13), transparent 65%), #121212; transition:transform 0.15s, border-color 0.15s; }
+  .qc-t:active { transform:scale(0.97); }
+  .qc-t.hot { border-color:rgba(232,93,4,0.45); }
+  .qc-top { display:flex; align-items:center; justify-content:space-between; min-height:34px; }
+  .qc-ic { width:34px; height:34px; flex:0 0 34px; border-radius:10px; border:1px solid rgba(232,93,4,0.35); background:rgba(232,93,4,0.1); color:var(--orange2); display:flex; align-items:center; justify-content:center; }
+  .qc-lb { font-size:10px; font-weight:700; letter-spacing:0.8px; color:var(--text3); margin-top:12px; text-transform:uppercase; }
+  .qc-v { font-size:19px; font-weight:800; color:var(--text); margin-top:3px; display:flex; align-items:center; gap:9px; padding:5px 0; margin-bottom:-5px; margin-top:-2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .qc-s { font-size:11px; color:var(--text2); margin-top:3px; line-height:1.35; }
+  .qc-dot { width:8px; height:8px; flex:0 0 8px; border-radius:50%; margin-left:5px; }
+  .qc-dot.live { background:var(--green); box-shadow:0 0 0 4px rgba(34,197,94,0.15); animation:qcPulse 2s ease-in-out infinite; }
+  .qc-dot.amber { background:#eab308; box-shadow:0 0 0 4px rgba(234,179,8,0.15); }
+  @keyframes qcPulse { 0%,100% { box-shadow:0 0 0 3px rgba(34,197,94,0.18); } 50% { box-shadow:0 0 0 5px rgba(34,197,94,0.04); } }
+  .qc-sw { width:38px; height:22px; flex:0 0 38px; border-radius:12px; position:relative; background:#2a2a2a; transition:background 0.2s; }
+  .qc-sw::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left 0.2s; }
+  .qc-sw.on { background:linear-gradient(90deg,#e85d04,#ff914d); box-shadow:0 0 10px rgba(232,93,4,0.45); }
+  .qc-sw.on::after { left:19px; }
+  .qc-chip { font-size:11px; font-weight:700; color:#fff; padding:5px 10px; border-radius:8px; background:linear-gradient(90deg,#e85d04,#ff6b1a); box-shadow:0 3px 10px rgba(232,93,4,0.35); }
+  .qc-ok { font-size:10px; font-weight:800; color:var(--green); background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.35); padding:3px 8px; border-radius:20px; }
+  @media (prefers-reduced-motion: reduce) { .qc-dot.live { animation:none; } .qc-sw, .qc-sw::after, .qc-t { transition:none; } }
   /* REFERRAL: partner card redesign */
   .rf-card { position:relative; overflow:hidden; border-radius:16px; border:1px solid rgba(232,93,4,0.35);
     background:radial-gradient(120% 70% at 0% 0%, rgba(232,93,4,0.22), transparent 60%),
@@ -1483,6 +1506,84 @@ function renderGettingStarted() {
     </div>`;
 }
 
+// ── QUICK CONTROLS ──────────────────────────────────
+// One brand colour for every icon; green/amber/red only where they carry
+// meaning (live, standby, profit, loss). Every value comes from data the
+// app already loads (USER, STATS) -- no new API calls.
+function renderQuickControls(s) {
+  const I_POWER  = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>';
+  const I_LINK   = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+  const I_FLASK  = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/></svg>';
+  const I_TARGET = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg>';
+
+  // 1. Auto-trading. "Live" only when it can actually trade: not paused AND
+  //    Binance connected. Otherwise Standby, so nobody thinks real money is
+  //    being traded when no exchange is connected.
+  const paused = !!USER.is_paused, hasKey = !!USER.has_api_key;
+  let atVal, atSub;
+  if (paused)       { atVal = '<span class="qc-dot amber"></span>Paused';  atSub = 'Tap to resume'; }
+  else if (!hasKey) { atVal = '<span class="qc-dot amber"></span>Standby'; atSub = 'Connect Binance to trade'; }
+  else              { atVal = '<span class="qc-dot live"></span>Live';     atSub = 'Tap to pause'; }
+
+  // 2. Exchange. Not connected -> the tile opens the same /connect flow as
+  //    the getting-started card; connected -> Settings, as before.
+  const exClick = hasKey ? "goTo('settings')" : "openBotCommand('connect')";
+
+  // 3. Demo balance and its change since the starting capital.
+  const d = USER.demo || {};
+  const dv = Number(d.total_value) || 0;
+  const start = Number(d.starting_balance) || 0;
+  const ret = Number.isFinite(Number(d.total_return)) ? Number(d.total_return) : dv - start;
+  let demoSub;
+  if (!USER.is_demo)  demoSub = '<span style="color:var(--text3)">Demo off \u00b7 tap to start</span>';
+  else if (!start)    demoSub = 'Virtual account';
+  else {
+    const pct = ret / start * 100;
+    const up = ret >= 0, cls = Math.abs(ret) < 0.005 ? 'var(--text2)' : (up ? 'var(--green)' : 'var(--red)');
+    demoSub = `<span style="color:${cls}">${up ? '+' : '\u2212'}$${fmtB(Math.abs(ret))} \u00b7 ${up ? '+' : '\u2212'}${Math.abs(pct).toFixed(1)}%</span>`;
+  }
+
+  // 4. Real win rate. No trades -> an honest dash, never a misleading 0%.
+  const total = Number(s && s.total) || 0, wins = Number(s && s.wins) || 0;
+  const wr = total ? Math.max(0, Math.min(100, Number(s.win_rate) || 0)) : 0;
+  const C = 81.68;                                          // 2 * PI * 13
+  const ring = `<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" r="13" fill="none" stroke="#222" stroke-width="4"/>
+      ${wr > 0 ? `<circle cx="17" cy="17" r="13" fill="none" stroke="#ff914d" stroke-width="4" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - wr / 100)).toFixed(2)}" transform="rotate(-90 17 17)"/>` : ''}
+    </svg>`;
+  const wrVal = total ? `${Math.round(wr)}%` : '\u2014';
+  const wrSub = total ? `${wins} of ${total} trade${total === 1 ? '' : 's'}` : 'No real trades yet';
+
+  return `
+      <div class="qc-grid">
+        <div class="qc-t" onclick="togglePause()">
+          <div class="qc-top"><div class="qc-ic">${I_POWER}</div><div class="qc-sw ${paused ? '' : 'on'}"></div></div>
+          <div class="qc-lb">Auto-trading</div>
+          <div class="qc-v">${atVal}</div>
+          <div class="qc-s">${atSub}</div>
+        </div>
+        <div class="qc-t ${hasKey ? '' : 'hot'}" onclick="${exClick}">
+          <div class="qc-top"><div class="qc-ic">${I_LINK}</div>${hasKey ? '<div class="qc-ok">\u2713 ON</div>' : '<div class="qc-chip">Connect</div>'}</div>
+          <div class="qc-lb">Exchange</div>
+          <div class="qc-v">Binance</div>
+          <div class="qc-s">${hasKey ? 'Connected' : '<span style="color:#ff914d">Not connected yet</span>'}</div>
+        </div>
+        <div class="qc-t" onclick="goTo('demo')">
+          <div class="qc-top"><div class="qc-ic">${I_FLASK}</div></div>
+          <div class="qc-lb">Demo balance</div>
+          <div class="qc-v">$${fmtB(dv)}</div>
+          <div class="qc-s">${demoSub}</div>
+        </div>
+        <div class="qc-t" onclick="goTo('trades')">
+          <div class="qc-top"><div class="qc-ic">${I_TARGET}</div>${ring}</div>
+          <div class="qc-lb">Real win rate</div>
+          <div class="qc-v">${wrVal}</div>
+          <div class="qc-s">${wrSub}</div>
+        </div>
+      </div>`;
+}
+// ── /QUICK CONTROLS
+
 function renderHome() {
   const s = STATS;
   const openTrades = REAL_TRADES.filter(t => t.status === 'OPEN').slice(0, 3);
@@ -1531,24 +1632,7 @@ function renderHome() {
     </div>
     <div class="section" style="margin-top:6px">
       <div class="section-header"><div class="section-title">Quick controls</div></div>
-      <div class="controls-grid">
-        <div class="ctrl-card" onclick="togglePause()">
-          <div class="ctrl-icon ${USER.is_paused?'green':'orange'}">${USER.is_paused?'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><path d="M4.5 3 13 8 4.5 13Z"/></svg>':'<svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%"><rect x="4.5" y="3" width="2.5" height="10" rx="0.8"/><rect x="9" y="3" width="2.5" height="10" rx="0.8"/></svg>'}</div>
-          <div><div class="ctrl-name">${USER.is_paused?'Resume':'Pause'}</div><div class="ctrl-sub">${USER.is_paused?'Paused':'Active'}</div></div>
-        </div>
-        <div class="ctrl-card" onclick="goTo('settings')">
-          <div class="ctrl-icon ${USER.has_api_key?'green':'red'}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="4.5" cy="8" r="2.5"/><path d="M6.8 8H13"/><path d="M10.5 8V10"/><path d="M13 8V10.5"/></svg></div>
-          <div><div class="ctrl-name">Binance</div><div class="ctrl-sub">${USER.has_api_key?'Connected':'Not set'}</div></div>
-        </div>
-        <div class="ctrl-card" onclick="goTo('demo')">
-          <div class="ctrl-icon purple"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-          <div><div class="ctrl-name">Demo</div><div class="ctrl-sub">$${fmtB(USER.demo.total_value)}</div></div>
-        </div>
-        <div class="ctrl-card" onclick="goTo('trades')">
-          <div class="ctrl-icon blue"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></div>
-          <div><div class="ctrl-name">Win rate</div><div class="ctrl-sub">${s.win_rate}%</div></div>
-        </div>
-      </div>
+      ${renderQuickControls(s)}
       <div class="risk-card">
         <div class="section-title" style="margin-bottom:10px">Risk mode</div>
         <div class="risk-btns">
@@ -1562,17 +1646,6 @@ function renderHome() {
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
       </div>
-      <div class="demo-banner" onclick="goTo('demo')">
-        <div class="demo-left">
-          <div style="width:22px;height:22px;color:var(--purple);flex-shrink:0"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="2" y="6" width="12" height="6" rx="3"/><path d="M5 8v3"/><path d="M3.5 9.5h3"/><circle cx="11" cy="8" r="0.6" fill="currentColor" stroke="none"/><circle cx="12.5" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-          <div>
-            <div class="demo-title">${USER.is_demo?'Demo mode active':'Demo mode off'}</div>
-            <div class="demo-sub">Virtual balance: $${fmtB(USER.demo.total_value)}</div>
-          </div>
-        </div>
-        <div style="color:var(--purple);opacity:0.6;font-size:18px">›</div>
-      </div>
-
       <!-- MARKET WIDGET: filled by loadMarket(), independent of this render -->
       <div id="market-slot">${renderMarket()}</div>
     </div>`;
