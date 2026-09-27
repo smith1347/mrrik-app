@@ -495,9 +495,152 @@
   .rf-pill.unpaid { background:#161616; color:#666; border:1px solid #2a2a2a; }
   .rf-more { text-align:center; font-size:12px; color:var(--orange2); font-weight:600; padding:8px 0 2px; cursor:pointer; }
   .rf-empty { font-size:12px; color:var(--text3); text-align:center; padding:12px 0 2px; }
+
+  /* MRRIK INTRO: opening animation */
+#ix-intro{position:fixed;inset:0;z-index:2147483000;background:#070503;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,sans-serif;overflow:hidden}
+#ix-glow{position:absolute;left:50%;top:47%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,93,4,.26) 0%,rgba(232,93,4,.08) 35%,transparent 68%)}
+#ix-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(255,200,150,.55),rgba(255,145,77,.12) 45%,transparent 75%);opacity:0}
+#ix-bolt{position:absolute;left:50%;top:0;width:120px;height:52%;margin-left:-40px;opacity:0}
+#ix-stage{position:absolute;inset:0;transform-origin:50% 48%}
+#ix-chart{position:absolute;left:50%;top:48%;width:246px;height:164px;margin:-123px 0 0 -123px;transform-origin:50% 75%;overflow:visible}
+#ix-line{position:absolute;left:50%;top:48%;height:1.5px;margin-top:-0.75px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,#ff914d 20%,#ffd2b0 50%,#ff914d 80%,transparent);box-shadow:0 0 12px rgba(255,145,77,.9)}
+#ix-word{position:absolute;left:0;right:0;top:50.5%;text-align:center;font-weight:800;font-size:48px;color:#fff;white-space:nowrap;
+  background:linear-gradient(100deg,#fff 0%,#fff 38%,#ffd9bd 46%,#ffffff 50%,#ffb27a 54%,#fff 62%,#fff 100%);background-size:300% 100%;background-position:100% 0;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+#sweep{position:absolute;left:0;right:0;top:50.5%;height:56px;overflow:hidden;pointer-events:none}
+#sweep i{position:absolute;top:0;width:60px;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);mix-blend-mode:overlay}
+#ix-sub{position:absolute;left:0;right:0;top:58.6%;text-align:center;font-weight:500;font-size:11px;color:#ff914d}
+#ix-tag{position:absolute;left:0;right:0;top:64.5%;text-align:center;font-weight:300;font-size:19px;color:#e9e1da;letter-spacing:.2px}
+#ix-tag span{display:inline-block;margin:0 .14em}
+#ix-prog{position:absolute;left:50%;bottom:64px;width:120px;margin-left:-60px;height:2px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden}
+#ix-prog i{display:block;height:100%;background:linear-gradient(90deg,#e85d04,#ffb27a);box-shadow:0 0 8px #ff914d}
+.ix-ember{position:absolute;width:3px;height:3px;border-radius:50%;background:#ff914d;box-shadow:0 0 6px #ff914d}
 </style>
 </head>
 <body>
+<!-- MRRIK INTRO: opening animation overlay -->
+<div id="ix-intro">
+  <div id="ix-glow"></div>
+  <svg id="ix-bolt" viewBox="0 0 120 400" preserveAspectRatio="none"><path id="ix-boltp" d="M72 0 L50 120 L70 126 L38 250 L60 256 L30 400" fill="none" stroke="#ffe0c8" stroke-width="2.2" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px #ff914d) drop-shadow(0 0 14px #e85d04)"/></svg>
+  <div id="ix-flash"></div>
+  <div id="ix-embers"></div>
+  <div id="ix-stage">
+    <div id="ix-line"></div>
+    <svg id="ix-chart" viewBox="0 0 180 120"><g id="ix-candles"></g></svg>
+    <div id="ix-word">MRRIK</div>
+    <div id="ix-sub">TRADING&nbsp;AI</div>
+    <div id="ix-tag"><span>Ride</span><span>the</span><span>storm.</span></div>
+  </div>
+  <div id="ix-prog"><i></i></div>
+</div>
+<script>
+// MRRIK INTRO: opening animation. Self-contained; delete this block,
+// the #ix-intro markup and the MRRIK INTRO styles to remove it.
+(function () {
+
+// Timeline in seconds. render(t) is pure: same t -> same frame, so the
+// preview can be recorded frame-perfect and the app can play it with rAF.
+const T_END = 4.0;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=x=>1-Math.pow(1-x,3), eExpo=x=>x>=1?1:1-Math.pow(2,-10*x), eInOut=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const eBack=x=>{const c1=1.4,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
+// five candles forming a clean uptrend above the price line (y=90)
+const C=[{x:30,o:84,c:66,h:60,l:90,col:'#ff914d'},{x:60,o:74,c:58,h:52,l:80,col:'#ffffff'},
+         {x:90,o:64,c:44,h:38,l:70,col:'#ff914d'},{x:120,o:52,c:34,h:28,l:58,col:'#ffffff'},{x:150,o:40,c:16,h:8,l:46,col:'#ff914d'}];
+const g=document.getElementById('ix-candles');
+C.forEach((c,i)=>{g.insertAdjacentHTML('beforeend',
+  `<g id="ix-c${i}"><line x1="${c.x}" x2="${c.x}" stroke="${c.col}" stroke-width="2" stroke-linecap="round"/>
+   <rect x="${c.x-7}" width="14" rx="3" fill="${c.col}"/></g>`)});
+const EMB=[...Array(14)].map((_,i)=>({x:8+((i*53)%84),y:60+((i*37)%35),s:.5+((i*29)%10)/10,d:(i%5)*.35}));
+const em=document.getElementById('ix-embers');
+EMB.forEach((e,i)=>em.insertAdjacentHTML('beforeend',`<div class="ix-ember" id="ix-e${i}"></div>`));
+const $=id=>document.getElementById(id);
+function render(t){
+  // background breath
+  const gIn=eOut(seg(t,0,1.2)), gOut=1-eInOut(seg(t,3.35,3.95));
+  $('ix-glow').style.opacity=(0.35+0.65*gIn)*gOut;
+  $('ix-glow').style.transform=`scale(${0.7+0.3*gIn+0.04*Math.sin(t*2.2)})`;
+  // 1. price line draws outward from the centre
+  const lw=eExpo(seg(t,0.12,0.7)), lFade=1-eOut(seg(t,1.35,1.8));
+  $('ix-line').style.width=(260*lw)+'px'; $('ix-line').style.marginLeft=(-130*lw)+'px'; $('ix-line').style.opacity=lFade;
+  // 2. candles rise one by one
+  C.forEach((c,i)=>{
+    const p=eBack(seg(t,0.5+i*0.09,0.95+i*0.09)); const q=clamp(p,0,1.2);
+    const mid=90, top=mid+(Math.min(c.o,c.c)-mid)*q, bot=mid+(Math.max(c.o,c.c)-mid)*q;
+    const wt=mid+(c.h-mid)*q, wb=mid+(c.l-mid)*q;
+    const gg=$('ix-c'+i); gg.style.opacity=clamp(seg(t,0.5+i*0.09,0.62+i*0.09));
+    const ln=gg.querySelector('line'), r=gg.querySelector('rect');
+    ln.setAttribute('y1',wt); ln.setAttribute('y2',wb);
+    r.setAttribute('y',top); r.setAttribute('height',Math.max(0,bot-top));
+  });
+  // 3. candles fold into the logo mark above the wordmark
+  const f=eInOut(seg(t,1.45,2.05));
+  $('ix-chart').style.transform=`translateY(${-112*f}px) scale(${1-0.46*f})`;
+  $('ix-chart').style.filter=`drop-shadow(0 0 ${6+6*f}px rgba(255,145,77,${0.35+0.25*f}))`;
+  // lightning: one sharp strike as the last candle lands
+  const bIn=seg(t,1.12,1.18), bOut=1-eOut(seg(t,1.18,1.5));
+  const bolt=t<1.12?0:bIn*bOut;
+  $('ix-bolt').style.opacity=bolt; $('ix-boltp').style.strokeDasharray='520'; $('ix-boltp').style.strokeDashoffset=520*(1-eOut(seg(t,1.12,1.2)));
+  $('ix-flash').style.opacity=t<1.14?0:(1-eOut(seg(t,1.14,1.55)))*0.9;
+  // 4. wordmark resolves: wide + blurred -> tight + sharp
+  const w=eOut(seg(t,1.7,2.45));
+  $('ix-word').style.opacity=w; $('ix-word').style.letterSpacing=(0.95-0.72*w)+'em';
+  $('ix-word').style.filter=`blur(${14*(1-w)}px)`; $('ix-word').style.paddingLeft=(0.95-0.72*w)+'em';
+  // glint travels through the letters
+  $('ix-word').style.backgroundPosition=(100-100*eInOut(seg(t,2.35,3.05)))+'% 0';
+  // 5. TRADING AI + tagline
+  const s=eOut(seg(t,2.2,2.7));
+  $('ix-sub').style.opacity=s; $('ix-sub').style.letterSpacing=(0.9-0.35*s)+'em'; $('ix-sub').style.paddingLeft=(0.9-0.35*s)+'em';
+  [...$('ix-tag').children].forEach((sp,i)=>{const k=eOut(seg(t,2.5+i*0.14,2.95+i*0.14));
+    sp.style.opacity=k; sp.style.transform=`translateY(${9*(1-k)}px)`; sp.style.filter=`blur(${7*(1-k)}px)`;});
+  // embers drift upward the whole time
+  EMB.forEach((e,i)=>{const life=(t*0.22*e.s+e.d)%1; const el=$('ix-e'+i);
+    el.style.left=e.x+'%'; el.style.top=(e.y-life*38)+'%';
+    el.style.opacity=Math.sin(life*Math.PI)*0.55*gIn*gOut; el.style.transform=`scale(${0.6+e.s*0.6})`;});
+  // loading bar
+  $('ix-prog').querySelector('i').style.width=(100*eInOut(seg(t,0.2,3.3)))+'%';
+  $('ix-prog').style.opacity=(seg(t,0.2,0.5))*(1-seg(t,3.25,3.5));
+  // 6. exit: a gentle push-in and fade into the app
+  const x=eInOut(seg(t,3.4,4.0));
+  $('ix-stage').style.opacity=1-x; $('ix-stage').style.transform=`scale(${1+0.06*x})`;
+}
+
+// ── App driver ─────────────────────────────────────
+// Full intro on the first open of each day, a ~1s version after that.
+// Tap skips to the fade-out. It always removes itself -- worst case 6s.
+const root = document.getElementById('ix-intro');
+let removed = false;
+function finish() { if (removed) return; removed = true; root.remove(); window.__MRRIK_INTRO.done = true; }
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let full = true;
+try {
+  const d = new Date(), today = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  if (localStorage.getItem('mrrik_intro_day') === today) full = false;
+  else localStorage.setItem('mrrik_intro_day', today);
+} catch (e) { /* storage unavailable: play the full intro */ }
+const T0 = full ? 0 : 2.9;                 // quick version starts with the logo already formed
+window.__MRRIK_INTRO = { mode: reduce ? 'skipped' : (full ? 'full' : 'short'), done: false };
+if (reduce) { finish(); return; }
+let offset = 0;
+const start = performance.now();
+const now = () => T0 + (performance.now() - start) / 1000 + offset;
+root.addEventListener('pointerdown', () => { const t = now(); if (t < 3.4) offset += 3.4 - t; }, { passive: true });
+function frame() {
+  if (removed) return;
+  const t = now();
+  render(Math.min(t, T_END));
+  if (!full) root.style.opacity = Math.min(1, (t - T0) / 0.18);   // soft entry for the quick version
+  if (t >= T_END) { finish(); return; }
+  requestAnimationFrame(frame);
+}
+render(T0);
+requestAnimationFrame(frame);
+setTimeout(finish, 6000);                  // hard safety limit
+})();
+</script>
 
 <div class="confetti-wrap" id="confettiWrap"></div>
 
