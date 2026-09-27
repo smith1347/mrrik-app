@@ -340,6 +340,72 @@
 
 
 
+
+  /* DEMO PAGE: redesigned stats */
+  .dm-card { position:relative; overflow:hidden; border-radius:18px; border:1px solid #232323; padding:15px; margin-bottom:12px;
+    background:radial-gradient(110% 60% at 0% 0%, rgba(232,93,4,0.10), transparent 60%), #121212; }
+  .dm-hero { border-color:rgba(232,93,4,0.4); padding:18px 16px 0;
+    background:radial-gradient(90% 80% at 0% 0%, rgba(232,93,4,0.30), transparent 60%), radial-gradient(70% 60% at 100% 100%, rgba(255,177,122,0.10), transparent 60%), #111; }
+  .dm-hero::before { content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size:22px 22px; }
+  .dm-hero > * { position:relative; }
+  .dm-shine { position:absolute !important; top:0; left:-40%; width:35%; height:100%; pointer-events:none;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,0.07), transparent); transform:skewX(-18deg); animation:dmShine 7s ease-in-out 1.2s infinite; }
+  @keyframes dmShine { 0% { left:-40%; } 30%, 100% { left:130%; } }
+  .dm-hd { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .dm-lbl { font-size:11px; font-weight:700; letter-spacing:1.2px; color:#ff914d; text-transform:uppercase; }
+  .dm-tag { font-size:10px; font-weight:700; color:#ffb27a; border:1px solid rgba(232,93,4,0.45); background:rgba(232,93,4,0.12); padding:3px 8px; border-radius:20px; white-space:nowrap; }
+  .dm-big { font-size:40px; font-weight:800; margin-top:8px; letter-spacing:-0.5px; line-height:1.1; font-variant-numeric:tabular-nums; color:#fff;
+    background:linear-gradient(180deg, #fff 30%, #ffb27a); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .dm-big .c { font-size:24px; }
+  .dm-rt { display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; margin-top:6px; font-size:12px; color:#888; }
+  .dm-chg { font-weight:700; padding:3px 8px; border-radius:20px; font-size:11px; font-variant-numeric:tabular-nums; }
+  .dm-chg.up { color:var(--green); background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); }
+  .dm-chg.dn { color:var(--red); background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); }
+  .dm-chg.fl { color:#aaa; background:#1a1a1a; border:1px solid #2a2a2a; }
+  .dm-fee { font-size:10px; color:#666; margin-top:6px; }
+  .dm-spark { display:block; margin:8px -16px 0; width:calc(100% + 32px); height:90px; }
+  .dm-spark-cap { display:flex; justify-content:space-between; font-size:10px; color:#666; margin:-2px 0 10px; font-variant-numeric:tabular-nums; }
+  .dm-spark-empty { font-size:11px; color:#666; text-align:center; padding:18px 0 16px; }
+  .dm-endpt { animation:dmPulse 2.4s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
+  @keyframes dmPulse { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+  .dm-st { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:1px; color:#aaa; margin:0 0 12px; text-transform:uppercase; }
+  .dm-st::before { content:""; width:3px; height:14px; border-radius:2px; background:var(--orange); }
+  .dm-st .r { margin-left:auto; font-size:11px; color:#ff914d; letter-spacing:0; font-weight:600; text-transform:none; cursor:pointer; }
+  .dm-stack { display:flex; height:12px; border-radius:7px; overflow:hidden; background:#1e1e1e; margin-bottom:10px; }
+  .dm-stack > div { height:100%; }
+  .dm-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid #1c1c1c; font-size:13px; }
+  .dm-row:first-of-type { border-top:none; }
+  .dm-sw { width:10px; height:10px; border-radius:3px; flex:0 0 10px; }
+  .dm-nm { color:#aaa; flex:1; min-width:0; }
+  .dm-vv { color:#fff; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .dm-vv small { font-size:11px; color:#666; margin-left:6px; font-weight:400; }
+  .dm-live { font-size:9px; color:var(--red); border:1px solid rgba(239,68,68,0.35); padding:1px 5px; border-radius:10px; margin-left:4px; vertical-align:1px; }
+  .dm-live.g { color:var(--green); border-color:rgba(34,197,94,0.35); }
+  .dm-live.n { color:#aaa; border-color:#333; }
+  .dm-tot { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; padding:11px 12px; border-radius:12px;
+    background:rgba(232,93,4,0.07); border:1px solid rgba(232,93,4,0.25); }
+  .dm-tot > span:first-child { color:#ffb27a; font-size:12px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; }
+  .dm-tot > span:last-child { font-size:17px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+  .dm-perf { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .dm-perf-n { font-size:26px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+  .dm-seg { display:flex; height:10px; border-radius:6px; overflow:hidden; gap:2px; margin:4px 0 12px; background:#1e1e1e; }
+  .dm-seg > div { height:100%; }
+  .dm-lr { display:flex; align-items:center; gap:10px; padding:7px 0; }
+  .dm-lr .ic { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:0 0 26px; }
+  .dm-lr .n { font-size:13px; color:#ddd; width:96px; flex:0 0 96px; }
+  .dm-lr .n small { display:block; font-size:10px; color:#666; margin-top:1px; }
+  .dm-bar { flex:1; height:6px; border-radius:4px; background:#1e1e1e; overflow:hidden; }
+  .dm-bar > i { display:block; height:100%; border-radius:4px; }
+  .dm-lr .c { width:58px; flex:0 0 58px; text-align:right; font-size:13px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+  .dm-lr .c small { display:block; font-size:10px; color:#666; font-weight:500; }
+  .dm-open { display:flex; align-items:center; gap:10px; margin-top:8px; padding:11px 12px; border-radius:12px; background:#161616; border:1px solid #232323; font-size:13px; color:#ddd; }
+  .dm-pulse { width:8px; height:8px; border-radius:50%; background:#ff914d; flex:0 0 8px; animation:dmDot 2s ease-in-out infinite; }
+  .dm-pulse.off { background:#444; animation:none; }
+  @keyframes dmDot { 0%,100% { box-shadow:0 0 0 3px rgba(232,93,4,0.25); } 50% { box-shadow:0 0 0 6px rgba(232,93,4,0.05); } }
+  .dm-pl .t { display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-bottom:6px; }
+  .dm-pl .t b { font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { .dm-shine, .dm-endpt, .dm-pulse { animation:none; } .dm-shine { display:none; } }
   /* SETTINGS ROWS: redesigned Account / Controls / Info */
   .sr-grp { border-radius:16px; border:1px solid #232323; overflow:hidden;
     background:radial-gradient(110% 60% at 0% 0%, rgba(232,93,4,0.10), transparent 60%), #121212; }
@@ -1309,7 +1375,7 @@ function goTo(tab, skipAnim=false) {
     }
     document.getElementById('screen').scrollTop = 0;
     // Animate counters on demo tab
-    if (tab === 'demo') setTimeout(animateDemoCounters, 50);
+    if (tab === 'demo' && !skipAnim) setTimeout(animateDemoCounters, 50);   // DEMO PAGE: not on silent refresh
   };
 
   if (skipAnim) {
@@ -1342,15 +1408,65 @@ function animateNumber(el, target, prefix='$', suffix='', duration=600) {
 }
 
 function animateDemoCounters() {
-  const demo = USER && USER.demo;
-  if (!demo) return;
-  const balEl = document.getElementById('demo-anim-bal');
-  const retEl = document.getElementById('demo-anim-ret');
-  if (balEl) animateNumber(balEl, parseFloat(demo.total_value), '$');
-  if (retEl) {
-    const ret = parseFloat(demo.total_return);
-    animateNumber(retEl, Math.abs(ret), ret >= 0 ? '+$' : '-$');
+  // DEMO PAGE: the final, correctly formatted values are already in the
+  // markup. This only replays them; every frame uses the same formatter and
+  // the last frame writes the exact final text, so a number on screen can
+  // never be left wrong or unformatted.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const root = document.getElementById('dm-root');
+  if (!root) return;
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const bal = document.getElementById('dm-bal');
+  const target = bal ? Number(bal.getAttribute('data-v')) : NaN;
+  if (bal && Number.isFinite(target)) {
+    const finalHTML = bal.innerHTML, t0 = performance.now(), dur = 1100;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      if (p < 1) { bal.innerHTML = dmMoneyHTML(target * ease(p)); requestAnimationFrame(step); }
+      else bal.innerHTML = finalHTML;
+    };
+    requestAnimationFrame(step);
   }
+  root.querySelectorAll('[data-dm-count]').forEach(el => {
+    const fin = el.textContent, tgt = Number(el.getAttribute('data-dm-count'));
+    const dec = Number(el.getAttribute('data-dm-dec') || 0), suf = el.getAttribute('data-dm-suf') || '';
+    if (!Number.isFinite(tgt) || tgt <= 0) return;
+    const t0 = performance.now(), dur = 1000;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      if (p < 1) { el.textContent = (tgt * ease(p)).toLocaleString('en-US', { minimumFractionDigits:dec, maximumFractionDigits:dec }) + suf; requestAnimationFrame(step); }
+      else el.textContent = fin;
+    };
+    requestAnimationFrame(step);
+  });
+  const line = document.getElementById('dm-line');
+  if (line && line.getTotalLength) {
+    const L = line.getTotalLength();
+    line.style.transition = 'none'; line.style.strokeDasharray = L; line.style.strokeDashoffset = L;
+    line.getBoundingClientRect();
+    line.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1)';
+    requestAnimationFrame(() => { line.style.strokeDashoffset = '0'; });
+    const clear = () => { line.style.strokeDasharray = ''; line.style.strokeDashoffset = ''; line.style.transition = ''; };
+    setTimeout(clear, 1800);
+  }
+  const area = document.getElementById('dm-area');
+  if (area) { area.style.transition = 'none'; area.style.opacity = '0'; area.getBoundingClientRect();
+    area.style.transition = 'opacity 1s ease 0.7s'; requestAnimationFrame(() => { area.style.opacity = ''; }); }
+  const ring = root.querySelector('.dm-ring-val');
+  if (ring) {
+    const fin = ring.getAttribute('stroke-dashoffset'), full = ring.getAttribute('stroke-dasharray');
+    ring.style.transition = 'none'; ring.style.strokeDashoffset = full; ring.getBoundingClientRect();
+    ring.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1) 0.2s';
+    requestAnimationFrame(() => { ring.style.strokeDashoffset = fin; });
+  }
+  root.querySelectorAll('.dm-fill').forEach((el, k) => {
+    const prop = el.hasAttribute('data-dm-flex') ? 'flexGrow' : 'width';
+    const fin = el.style[prop];
+    el.style.transition = 'none'; el.style[prop] = prop === 'width' ? '0%' : '0';
+    el.getBoundingClientRect();
+    el.style.transition = `${prop === 'width' ? 'width' : 'flex-grow'} 0.9s cubic-bezier(.2,.8,.2,1) ${0.25 + 0.08 * k}s`;
+    requestAnimationFrame(() => { el.style[prop] = fin; });
+  });
 }
 
 // ── Skeleton loader ──────────────────────────────────
@@ -1731,6 +1847,163 @@ function renderTrades() {
 }
 
 // ── Render: Demo ─────────────────────────────────────
+// ── DEMO PAGE ───────────────────────────────────────
+// Every figure comes straight from the server (USER.demo), the same fields
+// /demostats prints. The only client-side arithmetic is presentation:
+// percentages of numbers already shown, and the equity curve, which sums the
+// per-trade profit_usd of the closed trades already loaded, in cents.
+function dmR2(v) { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0; }
+function dmSign(v) { const r = dmR2(v); return r > 0 ? '+' : (r < 0 ? '\u2212' : ''); }
+function dmMoney(v, signed) {                       // "$1,234.56" / "+$1,234.56" / "−$1,234.56"
+  const r = dmR2(v);
+  return (signed ? dmSign(r) : (r < 0 ? '\u2212' : '')) + '$' + fmtB(Math.abs(r));
+}
+function dmMoneyHTML(v) {                           // hero: dollars big, cents small
+  const t = dmMoney(v, false), k = t.lastIndexOf('.');
+  return k < 0 ? t : `${t.slice(0, k)}<span class="c">${t.slice(k)}</span>`;
+}
+function dmPct(n, d, dec) { return d > 0 ? (n / d * 100).toFixed(dec) : (0).toFixed(dec); }
+
+function dmEquity() {
+  // Closed trades arrive newest-first; replay them oldest-first by id.
+  const rows = (Array.isArray(CLOSED_DEMO) ? CLOSED_DEMO : [])
+    .filter(t => t && Number.isFinite(Number(t.id)))
+    .slice().sort((a, b) => Number(a.id) - Number(b.id));
+  // Sum the exact values and round once at the end -- the same way the
+  // server's SUM() then round(…, 2) produces net_realized.
+  let sum = 0; const pts = [0];
+  rows.forEach(t => { sum += Number(t.profit_usd) || 0; pts.push(sum); });
+  return { n: rows.length, pts, total: dmR2(sum) };
+}
+
+function dmSpark(eq) {
+  if (eq.n < 2) return '<div class="dm-spark-empty">Your equity curve appears after 2 closed trades</div>';
+  const W = 320, H = 86, lo = Math.min(...eq.pts), hi = Math.max(...eq.pts), span = (hi - lo) || 1;
+  const last = eq.pts.length - 1;
+  const xy = eq.pts.map((p, i) => [2 + i * (W - 12) / last, H - 6 - (p - lo) / span * (H - 14)]);   // keep the end dot inside the card
+  const line = 'M' + xy.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L');
+  const up = eq.total >= 0, col = up ? '#ff914d' : '#ef4444';
+  const [ex, ey] = xy[last];
+  return `<svg class="dm-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="dmA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+      <path id="dm-area" d="${line} L${ex.toFixed(1)},${H} L${xy[0][0].toFixed(1)},${H} Z" fill="url(#dmA)"/>
+      <path id="dm-line" d="${line}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${up ? 'rgba(255,145,77,.8)' : 'rgba(239,68,68,.7)'})"/>
+      <circle class="dm-endpt" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3.5" fill="#fff" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <div class="dm-spark-cap"><span>Realized P&amp;L \u00b7 ${eq.all ? 'all' : 'last'} ${eq.n} closed trade${eq.n === 1 ? '' : 's'}</span><span style="color:${dmR2(eq.total) > 0 ? 'var(--green)' : (dmR2(eq.total) < 0 ? 'var(--red)' : '#888')}">${dmMoney(eq.total, true)}</span></div>`;
+}
+
+function renderDemoStats(demo) {
+  demo = demo || {};
+  const start  = dmR2(demo.starting_balance || 1000);
+  const total  = dmR2(demo.total_value);
+  const ret    = dmR2(demo.total_return);
+  const free   = dmR2(demo.free_balance);
+  const locked = dmR2(demo.locked);
+  const upnl   = dmR2(demo.unrealized_pnl);
+  const fw = Math.max(0, Number(demo.full_wins) || 0), pw = Math.max(0, Number(demo.partial_wins) || 0);
+  const be = Math.max(0, Number(demo.breakevens) || 0), ls = Math.max(0, Number(demo.losses) || 0);
+  const openN = Math.max(0, Number(demo.open_trades) || 0);
+  const closedN = fw + pw + be + ls;                         // exactly the trades shown below
+  const wr = Math.max(0, Math.min(100, Number(demo.win_rate) || 0));
+  const rp = dmR2(demo.realized_profit), rl = dmR2(demo.realized_loss), net = dmR2(demo.net_realized);
+
+  // 1. Hero
+  const retPct = start > 0 ? ret / start * 100 : 0;
+  const chgCls = ret > 0 ? 'up' : (ret < 0 ? 'dn' : 'fl');
+  const arrow  = ret > 0 ? '\u25b2 ' : (ret < 0 ? '\u25bc ' : '');
+  const riskNames = { low:'Low risk', medium:'Medium risk', high:'High risk', contrarian:'Contrarian' };
+  const eq = dmEquity();
+  eq.all = eq.n === fw + pw + be + ls;             // the curve covers every closed trade
+  const hero = `
+    <div class="dm-card dm-hero">
+      <div class="dm-shine"></div>
+      <div class="dm-hd"><div class="dm-lbl">Virtual balance</div><div class="dm-tag">DEMO \u00b7 ${esc(riskNames[USER.risk_mode] || 'Medium risk').toUpperCase()}</div></div>
+      <div class="dm-big" id="dm-bal" data-v="${total}">${dmMoneyHTML(total)}</div>
+      <div class="dm-rt"><span class="dm-chg ${chgCls}">${arrow}${dmMoney(ret, true)} \u00b7 ${ret > 0 ? '+' : (ret < 0 ? '\u2212' : '')}${Math.abs(retPct).toFixed(2)}%</span><span>since ${dmMoney(start, false)} start</span></div>
+      <div class="dm-fee">Demo results exclude trading fees</div>
+      ${dmSpark(eq)}
+    </div>`;
+
+  // 2. Capital allocation. Bar shares are of free + locked (the capital);
+  //    percentages are integers that always add up to exactly 100.
+  const fPos = Math.max(0, free), lPos = Math.max(0, locked), cap = fPos + lPos;
+  const fShare = cap > 0 ? Math.round(fPos / cap * 100) : 0;
+  const lShare = cap > 0 ? 100 - fShare : 0;
+  const upCol = upnl > 0 ? 'var(--green)' : (upnl < 0 ? 'var(--red)' : '#aaa');
+  const alloc = `
+    <div class="dm-card">
+      <div class="dm-st">Capital allocation<span class="r" onclick="loadData()">\u21bb Refresh</span></div>
+      <div class="dm-stack">
+        ${cap > 0 ? `<div class="dm-fill" data-dm-flex style="flex-grow:${fPos};flex-basis:0;background:linear-gradient(90deg,#e85d04,#ff914d)"></div>
+        <div class="dm-fill" data-dm-flex style="flex-grow:${lPos};flex-basis:0;background:repeating-linear-gradient(135deg,#7c2d12 0 5px,#9a3412 5px 10px)"></div>` : ''}
+      </div>
+      <div class="dm-row"><span class="dm-sw" style="background:#ff914d"></span><span class="dm-nm">Free balance</span><span class="dm-vv">${dmMoney(free, false)}${cap > 0 ? `<small>${fShare}%</small>` : ''}</span></div>
+      <div class="dm-row"><span class="dm-sw" style="background:#9a3412"></span><span class="dm-nm">Locked in ${openN} trade${openN === 1 ? '' : 's'}</span><span class="dm-vv">${dmMoney(locked, false)}${cap > 0 ? `<small>${lShare}%</small>` : ''}</span></div>
+      <div class="dm-row"><span class="dm-sw" style="background:${upCol};border-radius:50%"></span><span class="dm-nm">Unrealized P&amp;L${openN > 0 ? `<span class="dm-live${upnl > 0 ? ' g' : (upnl < 0 ? '' : ' n')}">LIVE</span>` : ''}</span><span class="dm-vv" style="color:${upCol}">${dmMoney(upnl, true)}</span></div>
+      <div class="dm-row"><span class="dm-sw" style="background:#444"></span><span class="dm-nm">Starting balance</span><span class="dm-vv">${dmMoney(start, false)}</span></div>
+      <div class="dm-tot"><span>Total value</span><span>${dmMoney(total, false)}</span></div>
+    </div>`;
+
+  // 3. Performance
+  const C = 213.63;                                          // 2 * PI * 34
+  const ring = `<svg width="96" height="96" viewBox="0 0 84 84" style="flex:0 0 96px" aria-hidden="true">
+      <defs><linearGradient id="dmG" x1="0" x2="1"><stop offset="0" stop-color="#e85d04"/><stop offset="1" stop-color="#ffb27a"/></linearGradient></defs>
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#1e1e1e" stroke-width="7"/>
+      ${wr > 0 ? `<circle class="dm-ring-val" cx="42" cy="42" r="34" fill="none" stroke="url(#dmG)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - wr / 100)).toFixed(2)}" transform="rotate(-90 42 42)" style="filter:drop-shadow(0 0 4px rgba(232,93,4,.6))"/>` : ''}
+      <text x="42" y="44" text-anchor="middle" fill="#fff" font-size="16" font-weight="800" data-dm-count="${wr}" data-dm-dec="1" data-dm-suf="%">${wr.toFixed(1)}%</text>
+      <text x="42" y="56" text-anchor="middle" fill="#777" font-size="8">win rate</text>
+    </svg>`;
+  const OUT = [
+    { k:'fw', n:fw, col:'#22c55e', bg:'rgba(34,197,94,0.12)', name:'Full wins',    sub:'all targets hit',  ic:'<path d="M5 12.5 10 17 19 7"/>' },
+    { k:'pw', n:pw, col:'#eab308', bg:'rgba(234,179,8,0.12)', name:'Partial wins', sub:'closed in profit', ic:'<circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>' },
+    { k:'be', n:be, col:'#60a5fa', bg:'rgba(96,165,250,0.12)', name:'Breakeven',   sub:'net zero',         ic:'<path d="M6 9.5h12M6 14.5h12"/>' },
+    { k:'ls', n:ls, col:'#ef4444', bg:'rgba(239,68,68,0.12)', name:'Losses',       sub:'closed at a loss', ic:'<path d="M7 7l10 10M17 7 7 17"/>' },
+  ];
+  const seg = closedN > 0
+    ? OUT.filter(o => o.n > 0).map(o => `<div class="dm-fill" data-dm-flex style="flex-grow:${o.n};flex-basis:0;background:${o.col}"></div>`).join('')
+    : '';
+  const lines = OUT.map(o => `
+      <div class="dm-lr">
+        <div class="ic" style="background:${o.bg};color:${o.col}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${o.ic}</svg></div>
+        <div class="n">${o.name}<small>${o.sub}</small></div>
+        <div class="dm-bar"><i class="dm-fill" style="width:${dmPct(o.n, closedN, 2)}%;background:${o.col}"></i></div>
+        <div class="c"><span data-dm-count="${o.n}">${o.n.toLocaleString('en-US')}</span><small>${dmPct(o.n, closedN, 1)}%</small></div>
+      </div>`).join('');
+  const perf = `
+    <div class="dm-card">
+      <div class="dm-st">Performance</div>
+      <div class="dm-perf">${ring}
+        <div>
+          <div class="dm-perf-n" data-dm-count="${closedN}">${closedN.toLocaleString('en-US')}</div>
+          <div style="font-size:12px;color:#888">closed trade${closedN === 1 ? '' : 's'}</div>
+          ${closedN > 0 ? `<div style="font-size:12px;color:var(--green);margin-top:6px">${(fw + pw).toLocaleString('en-US')} in profit</div>
+          ${be > 0 ? `<div style="font-size:12px;color:#60a5fa">${be.toLocaleString('en-US')} at breakeven</div>` : ''}
+          <div style="font-size:12px;color:var(--red)">${ls.toLocaleString('en-US')} at a loss</div>` : '<div style="font-size:12px;color:#666;margin-top:6px">No closed trades yet</div>'}
+        </div>
+      </div>
+      <div class="dm-seg">${seg}</div>
+      ${lines}
+      <div class="dm-open"><span class="dm-pulse${openN > 0 ? '' : ' off'}"></span>Open positions<span style="margin-left:auto;font-weight:800;color:#fff;font-variant-numeric:tabular-nums">${openN.toLocaleString('en-US')}</span></div>
+    </div>`;
+
+  // 4. Realized P&L. Bars are scaled to the larger of the two amounts.
+  const rpAbs = Math.abs(rp), rlAbs = Math.abs(rl), mx = Math.max(rpAbs, rlAbs);
+  const netCol = net > 0 ? 'var(--green)' : (net < 0 ? 'var(--red)' : '#fff');
+  const real = `
+    <div class="dm-card">
+      <div class="dm-st">Realized P&amp;L</div>
+      <div class="dm-pl"><div class="t"><span>Realized profit</span><b style="color:var(--green)">${dmMoney(rpAbs, true)}</b></div>
+        <div class="dm-bar" style="height:8px"><i class="dm-fill" style="width:${mx > 0 ? (rpAbs / mx * 100).toFixed(2) : 0}%;background:linear-gradient(90deg,#15803d,#22c55e)"></i></div></div>
+      <div class="dm-pl" style="margin-top:12px"><div class="t"><span>Realized loss</span><b style="color:var(--red)">${dmMoney(-rlAbs, true)}</b></div>
+        <div class="dm-bar" style="height:8px"><i class="dm-fill" style="width:${mx > 0 ? (rlAbs / mx * 100).toFixed(2) : 0}%;background:linear-gradient(90deg,#991b1b,#ef4444)"></i></div></div>
+      <div class="dm-tot" style="margin-top:14px"><span>Net realized</span><span style="color:${netCol}">${dmMoney(net, true)}</span></div>
+    </div>`;
+
+  return `<div id="dm-root">${hero}${alloc}${perf}${real}</div>`;
+}
+// ── /DEMO PAGE
+
 function renderDemo() {
   const demo = USER.demo;
   const ret = demo.total_return;
@@ -1743,112 +2016,8 @@ function renderDemo() {
   return `
     <div class="section" style="margin-top:14px">
 
-      <!-- Main balance card -->
-      <div class="demo-bal-card">
-        <div class="demo-bal-label">Virtual balance</div>
-        <div class="demo-bal-amount count-anim" id="demo-anim-bal">$${fmtB(demo.total_value)}</div>
-        <div style="font-size:11px;color:rgba(167,139,250,0.5);margin-top:4px">
-          Starting: $${fmtB(demo.starting_balance||1000)} &middot; <span id="demo-anim-ret">${retPos?'+':'-'}$${fmt(ret)}</span> ${retPos?'earned':'lost'}
-        </div>
-      </div>
+      ${renderDemoStats(demo)}
 
-      <!-- Full stats breakdown — matches /demostats exactly -->
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="section-title">Account breakdown</div>
-          <div style="font-size:11px;color:var(--purple);cursor:pointer" onclick="loadData()">↻ Refresh</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 5.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 14 5.5v6A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5v-6Z"/><path d="M2 6.5h12"/><circle cx="11" cy="9.5" r="0.75" fill="currentColor" stroke="none"/></svg></span><span style="font-size:12px;color:var(--text3)">Starting balance</span></div>
-            <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.starting_balance||1000)}</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="3" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8A2.5 2.5 0 0 1 10.3 4"/></svg></span><span style="font-size:12px;color:var(--text3)">Free balance</span></div>
-            <div style="font-size:12px;color:var(--text);font-weight:500">$${fmtB(demo.free_balance)}</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7"/></svg></span><span style="font-size:12px;color:var(--text3)">Locked in trades</span></div>
-            <div style="font-size:12px;color:var(--orange);font-weight:500">$${fmtB(demo.locked)}</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 9.5h2.3l1.5-4 2.4 7 1.6-5.5 1.2 2.5H14"/></svg></span><span style="font-size:12px;color:var(--text3)">Unrealized P&L</span></div>
-            <div style="font-size:12px;font-weight:500;color:${upnlPos?'var(--green)':'var(--red)'}">
-              ${upnlPos?'+':'-'}$${fmt(upnl)}
-            </div>
-          </div>
-          <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M8 2.5 13.5 5.5 8 8.5 2.5 5.5 8 2.5Z"/><path d="M2.5 8.5 8 11.5l5.5-3"/><path d="M2.5 11 8 14l5.5-3"/></svg></span><span style="font-size:12px;color:var(--text3)">Total value</span></div>
-            <div style="font-size:13px;color:var(--purple);font-weight:600">$${fmtB(demo.total_value)}</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span class="stat-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5"/><path d="M10 4.5H14v4"/></svg></span><span style="font-size:12px;color:var(--text3)">Total return</span></div>
-            <div style="font-size:12px;font-weight:500;color:${retPos?'var(--green)':'var(--red)'}">
-              ${retPos?'+':'-'}$${fmt(ret)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Trade counts -->
-      <!-- 4-category trade results grid -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div class="demo-stat" style="border-color:rgba(34,197,94,0.2);background:var(--green-dim)">
-          <div class="demo-stat-l" style="color:rgba(34,197,94,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(34,197,94,0.15);color:var(--green);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>Full wins</div>
-          <div class="demo-stat-v" style="color:var(--green)">${demo.full_wins}</div>
-          <div style="font-size:9px;color:rgba(34,197,94,0.5);margin-top:2px">All TPs hit</div>
-        </div>
-        <div class="demo-stat" style="border-color:rgba(234,179,8,0.2);background:rgba(234,179,8,0.08)">
-          <div class="demo-stat-l" style="color:rgba(234,179,8,0.7)"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#eab308;margin-right:5px;vertical-align:1px"></span>Partial wins</div>
-          <div class="demo-stat-v" style="color:#eab308">${demo.partial_wins}</div>
-          <div style="font-size:9px;color:rgba(234,179,8,0.5);margin-top:2px">Closed in profit</div>
-        </div>
-        <div class="demo-stat" style="border-color:rgba(96,165,250,0.2);background:rgba(96,165,250,0.08)">
-          <div class="demo-stat-l" style="color:rgba(96,165,250,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(96,165,250,0.15);color:#60a5fa;align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3.5 6.5h9"/><path d="M3.5 9.5h9"/></svg></span>Breakeven</div>
-          <div class="demo-stat-v" style="color:#60a5fa">${demo.breakevens}</div>
-          <div style="font-size:9px;color:rgba(96,165,250,0.4);margin-top:2px">Closed at net zero</div>
-        </div>
-        <div class="demo-stat" style="border-color:rgba(239,68,68,0.2);background:var(--red-dim)">
-          <div class="demo-stat-l" style="color:rgba(239,68,68,0.6)"><span style="display:inline-flex;width:16px;height:16px;border-radius:6px;background:rgba(239,68,68,0.15);color:var(--red);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span>Losses</div>
-          <div class="demo-stat-v" style="color:var(--red)">${demo.losses}</div>
-          <div style="font-size:9px;color:rgba(239,68,68,0.4);margin-top:2px">Closed at a loss</div>
-        </div>
-      </div>
-      <!-- Summary row: open + win rate -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div class="demo-stat">
-          <div class="demo-stat-l">Open</div>
-          <div class="demo-stat-v" style="color:var(--purple)">${demo.open_trades}</div>
-        </div>
-        <div class="demo-stat">
-          <div class="demo-stat-l">Win rate</div>
-          <div class="demo-stat-v" style="color:var(--orange)">${demo.win_rate}%</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px">Full + partial</div>
-        </div>
-      </div>
-
-      <!-- Realized P&L breakdown -->
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px">
-        <div class="section-title" style="margin-bottom:10px">Realized P&L</div>
-        <div style="display:flex;flex-direction:column;gap:7px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:var(--green-dim);color:var(--green);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span><span style="font-size:12px;color:var(--text3)">Realized profit</span></div>
-            <div style="font-size:12px;font-weight:500;color:var(--green)">+$${fmt(demo.realized_profit)}</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:var(--red-dim);color:var(--red);align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 4 12 12"/><path d="M12 4 4 12"/></svg></span><span style="font-size:12px;color:var(--text3)">Realized loss</span></div>
-            <div style="font-size:12px;font-weight:500;color:var(--red)">-$${fmt(demo.realized_loss)}</div>
-          </div>
-          <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;width:20px;height:20px;border-radius:6px;background:rgba(96,165,250,0.12);color:#60a5fa;align-items:center;justify-content:center;margin-right:6px;vertical-align:-6px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span><span style="font-size:12px;color:var(--text3)">Net realized</span></div>
-            <div style="font-size:13px;font-weight:600;color:${(demo.net_realized||0)>=0?'var(--green)':'var(--red)'}">
-              ${(demo.net_realized||0)>=0?'+':'-'}$${fmt(demo.net_realized||0)}
-            </div>
-          </div>
-        </div>
-      </div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <div style="flex:1;background:rgba(167,139,250,0.08);border:0.5px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:background 0.15s;active:background:rgba(167,139,250,0.2)"
              onclick="openBotCommand('resetdemo')">
