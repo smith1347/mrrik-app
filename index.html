@@ -341,6 +341,60 @@
 
 
 
+
+  /* TRADES PAGE: redesigned real-trades screen */
+  .tr-hero { position:relative; overflow:hidden; border-radius:18px; border:1px solid rgba(232,93,4,0.4); padding:16px; margin-bottom:6px;
+    background:radial-gradient(90% 80% at 0% 0%, rgba(232,93,4,0.28), transparent 60%), #111; }
+  .tr-hero::before { content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size:22px 22px; }
+  .tr-hero > * { position:relative; }
+  .tr-lbl { font-size:11px; font-weight:700; letter-spacing:1.2px; color:#ff914d; }
+  .tr-big { font-size:34px; font-weight:800; margin-top:6px; letter-spacing:-0.5px; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .tr-sub { font-size:12px; color:#888; margin-top:4px; }
+  .tr-note { font-size:11px; color:#777; margin-top:6px; }
+  .tr-minis { display:flex; gap:8px; margin-top:14px; }
+  .tr-mini { flex:1; min-width:0; background:rgba(0,0,0,0.25); border:1px solid #232323; border-radius:12px; padding:9px 10px; }
+  .tr-mini .k { font-size:10px; color:#666; letter-spacing:0.6px; font-weight:700; text-transform:uppercase; }
+  .tr-mini .v { font-size:14px; font-weight:800; margin-top:3px; color:#fff; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tr-cnt { background:rgba(232,93,4,0.15); color:#ff914d; border:1px solid rgba(232,93,4,0.35); border-radius:10px; padding:1px 7px; font-size:10px; letter-spacing:0; margin-left:4px; }
+  .tr-pos { border-radius:16px; border:1px solid #232323; background:#121212; padding:13px; margin-bottom:10px; }
+  .tr-ph { display:flex; align-items:center; gap:10px; }
+  .tr-av { width:34px; height:34px; flex:0 0 34px; border-radius:50%; background:linear-gradient(135deg,#e85d04,#7c2d12); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:12px; }
+  .tr-sym { font-size:15px; font-weight:700; color:#fff; }
+  .tr-sym small { font-size:11px; color:#666; font-weight:500; margin-left:3px; }
+  .tr-pill { font-size:10px; font-weight:800; padding:3px 7px; border-radius:6px; letter-spacing:0.4px; display:inline-block; }
+  .tr-pill.long { color:var(--green); background:rgba(34,197,94,0.12); }
+  .tr-pill.short { color:var(--red); background:rgba(239,68,68,0.12); }
+  .tr-pill.lev { color:#aaa; background:#1c1c1c; }
+  .tr-live { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:10px; color:#ff914d; font-weight:700; white-space:nowrap; }
+  .tr-dot { width:7px; height:7px; border-radius:50%; background:#ff914d; animation:dmDot 2s ease-in-out infinite; }
+  .tr-lad { position:relative; height:40px; margin:16px 8px 4px; }
+  .tr-track { position:absolute; left:0; right:0; top:12px; height:4px; border-radius:3px; background:linear-gradient(90deg, rgba(239,68,68,0.55), #2a2a2a 30%, #2a2a2a 55%, rgba(34,197,94,0.55)); }
+  .tr-tick { position:absolute; top:6px; width:2px; height:16px; border-radius:2px; margin-left:-1px; }
+  .tr-tick.e { top:3px; height:22px; background:#fff; }
+  .tr-tl { position:absolute; top:27px; font-size:9px; font-weight:700; transform:translateX(-50%); white-space:nowrap; }
+  .tr-kv { display:flex; justify-content:space-between; gap:6px; font-size:11px; color:#777; margin-top:8px; border-top:1px solid #1c1c1c; padding-top:9px; flex-wrap:wrap; }
+  .tr-kv b { color:#ddd; font-weight:600; font-variant-numeric:tabular-nums; }
+  .tr-chips { display:flex; gap:6px; margin:0 0 10px; }
+  .tr-chip { font-size:11px; font-weight:700; padding:5px 11px; border-radius:20px; border:1px solid #2a2a2a; color:#888; background:#141414; cursor:pointer; }
+  .tr-chip.on { color:#fff; border-color:rgba(232,93,4,0.55); background:rgba(232,93,4,0.15); }
+  .tr-grp { border-radius:16px; border:1px solid #232323; overflow:hidden; background:#121212; }
+  .tr-day { font-size:10px; font-weight:700; letter-spacing:0.8px; color:#555; padding:10px 13px 4px; text-transform:uppercase; }
+  .tr-h { display:flex; align-items:center; gap:10px; padding:10px 13px; border-top:1px solid #1b1b1b; }
+  .tr-day + .tr-h { border-top:none; }
+  .tr-ic { width:30px; height:30px; flex:0 0 30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .tr-hx { flex:1; min-width:0; }
+  .tr-hs { font-size:13px; font-weight:700; color:#fff; }
+  .tr-hm { font-size:11px; color:#666; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tr-pnl { text-align:right; font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tr-empty { border-radius:16px; border:1px dashed #2a2a2a; padding:22px 16px; text-align:center; }
+  .tr-eic { width:44px; height:44px; border-radius:14px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(232,93,4,0.35); background:rgba(232,93,4,0.1); color:#ff914d; }
+  .tr-et { font-size:14px; font-weight:700; color:#fff; }
+  .tr-es { font-size:12px; color:#777; margin-top:4px; line-height:1.45; }
+  .tr-btn { display:inline-block; margin-top:12px; font-size:12px; font-weight:700; color:#fff; padding:8px 16px; border-radius:10px; border:none; cursor:pointer; background:linear-gradient(90deg,#e85d04,#ff6b1a); box-shadow:0 4px 14px rgba(232,93,4,0.35); }
+  .tr-more { display:block; width:100%; text-align:center; font-size:12px; font-weight:700; color:#ff914d; background:none; border:none; padding:12px 0 4px; cursor:pointer; }
+  .tr-more[disabled] { color:#555; }
+  @media (prefers-reduced-motion: reduce) { .tr-dot { animation:none; } }
   /* DEMO PAGE: redesigned stats */
   .dm-card { position:relative; overflow:hidden; border-radius:18px; border:1px solid #232323; padding:15px; margin-bottom:12px;
     background:radial-gradient(110% 60% at 0% 0%, rgba(232,93,4,0.10), transparent 60%), #121212; }
@@ -756,6 +810,7 @@ function getUserId() {
 let USER     = null;   // /api/user response
 let STATS    = null;   // /api/stats  — real trade stats
 let REAL_TRADES  = []; // /api/real_trades
+let REAL_LIMIT = 30, REAL_CLOSED_TOTAL = 0, TR_FILTER = 'all';   // TRADES PAGE
 let DEMO_TRADES  = [];
 let OPEN_DEMO    = [];   // all open demo trades (no limit)
 let CLOSED_DEMO  = [];   // recent closed demo trades // /api/demo_trades
@@ -1445,12 +1500,14 @@ async function loadData(silent=false) {
     const [userData, statsData, realData, demoData] = await Promise.all([
       apiFetch(`/api/user?user_id=${USER_ID}`),
       apiFetch(`/api/stats?user_id=${USER_ID}`),
-      apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=30`),
+      apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=${REAL_LIMIT}`),   // TRADES PAGE: keeps "Show more" across refreshes
       apiFetch(`/api/demo_trades?user_id=${USER_ID}&limit=100`),
     ]);
     USER         = userData;
     STATS        = statsData;
     REAL_TRADES  = realData.trades        || [];
+    REAL_CLOSED_TOTAL = Number.isFinite(Number(realData.closed_total)) ? Number(realData.closed_total)
+                      : REAL_TRADES.filter(t => t.status !== 'OPEN').length;   // TRADES PAGE
     DEMO_TRADES  = demoData.trades        || [];   // backwards compat (open+closed)
     OPEN_DEMO    = demoData.open_trades   || DEMO_TRADES.filter(t => t.status === 'OPEN');
     CLOSED_DEMO  = demoData.closed_trades || DEMO_TRADES.filter(t => t.status !== 'OPEN');
@@ -1828,14 +1885,15 @@ function renderQuickControls(s) {
   }
 
   // 4. Real win rate. No trades -> an honest dash, never a misleading 0%.
-  const total = Number(s && s.total) || 0, wins = Number(s && s.wins) || 0;
+  // TRADES PAGE: "closed" = trades with a known result (server field); older servers lack it
+  const total = Number(s && (s.closed !== undefined ? s.closed : s.total)) || 0, wins = Number(s && s.wins) || 0;
   const wr = total ? Math.max(0, Math.min(100, Number(s.win_rate) || 0)) : 0;
   const C = 81.68;                                          // 2 * PI * 13
   const ring = `<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
       <circle cx="17" cy="17" r="13" fill="none" stroke="#222" stroke-width="4"/>
       ${wr > 0 ? `<circle cx="17" cy="17" r="13" fill="none" stroke="#ff914d" stroke-width="4" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - wr / 100)).toFixed(2)}" transform="rotate(-90 17 17)"/>` : ''}
     </svg>`;
-  const wrVal = total ? `${Math.round(wr)}%` : '\u2014';
+  const wrVal = total ? `${wr.toFixed(1).replace(/\.0$/, '')}%` : '\u2014';   // TRADES PAGE: same figure as the Trades page
   const wrSub = total ? `${wins} of ${total} trade${total === 1 ? '' : 's'}` : 'No real trades yet';
 
   return `
@@ -1936,58 +1994,230 @@ function renderHome() {
 }
 
 // ── Render: Trades (real trades only) ───────────────
+// ── TRADES PAGE ─────────────────────────────────────
+// Real trades. Every money figure and count comes from the server (STATS,
+// /api/real_trades). The server stores times in Armenian time (UTC+4, no
+// DST) without a zone, so dates and "ago" are computed in that zone --
+// never on the phone's own clock.
+const TR_EPS = 0.005;                                   // same epsilon as the server
+function trOutcome(t) {                                 // 'win' | 'be' | 'loss' | 'unknown'
+  if (t.profit === null || t.profit === undefined || t.profit === '') return 'unknown';
+  const p = Number(t.profit);
+  if (!Number.isFinite(p)) return 'unknown';
+  return p > TR_EPS ? 'win' : (p < -TR_EPS ? 'loss' : 'be');
+}
+function trTime(s) {                                    // server string -> real Date
+  if (!s) return null;
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return null;
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+04:00`);
+  return isNaN(d) ? null : d;
+}
+function trYerevanDay(d) {                              // 'YYYY-MM-DD' in Armenian time
+  return new Date(d.getTime() + 4 * 3600000).toISOString().slice(0, 10);
+}
+function trDayLabel(s) {
+  const d = trTime(s);
+  if (!d) return 'Earlier';
+  const day = trYerevanDay(d), now = new Date();
+  if (day === trYerevanDay(now)) return 'Today';
+  if (day === trYerevanDay(new Date(now.getTime() - 86400000))) return 'Yesterday';
+  return new Date(day + 'T12:00:00Z').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', timeZone:'UTC' });
+}
+function trClock(s) { const m = String(s || '').match(/[ T](\d{2}:\d{2})/); return m ? m[1] : ''; }
+function trAgo(s) {
+  const d = trTime(s);
+  if (!d) return '';
+  const min = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  if (min < 1440) return `${Math.floor(min / 60)}h ago`;
+  const days = Math.floor(min / 1440);
+  return `${days}d ago`;
+}
+function trPrice(v) {                                   // "$148.6" / "$2,612.5" / "$0.00001234"
+  const p = Number(v);
+  if (!Number.isFinite(p) || p <= 0) return '\u2014';
+  const dec = p >= 1000 ? 2 : (p >= 1 ? 4 : 8);
+  return '$' + p.toLocaleString('en-US', { minimumFractionDigits:0, maximumFractionDigits:dec });
+}
+function trBase(sym) {
+  const s = String(sym || '');
+  return /USDT$/.test(s) && s.length > 4 ? { base:s.slice(0, -4), quote:'/USDT' } : { base:s, quote:'' };
+}
+function trLadder(t) {
+  const entry = Number(t.entry), sl = Number(t.sl);
+  const tps = [t.tp1, t.tp2, t.tp3].map(Number).filter(v => Number.isFinite(v) && v > 0);
+  if (!(entry > 0) || !(sl > 0) || !tps.length) return '';
+  const pts = [['SL', sl, 'var(--red)'], ['ENTRY', entry, '#fff']].concat(tps.map((v, i) => [`TP${i + 1}`, v, 'var(--green)']));
+  const lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1]));
+  if (!(hi > lo)) return '';
+  const short = String(t.direction).toUpperCase() === 'SHORT';
+  return `<div class="tr-lad"><div class="tr-track"></div>${pts.map(([n, v, c]) => {
+    const x = ((short ? hi - v : v - lo) / (hi - lo) * 100).toFixed(2);
+    return `<div class="tr-tick${n === 'ENTRY' ? ' e' : ''}" style="left:${x}%;${n === 'ENTRY' ? '' : `background:${c}`}"></div><div class="tr-tl" style="left:${x}%;color:${c}">${n}</div>`;
+  }).join('')}</div>`;
+}
+const TR_I = {
+  link:  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  radar: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12 18 6"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
+  win:   '<path d="M5 12.5 10 17 19 7"/>',
+  loss:  '<path d="M7 7l10 10M17 7 7 17"/>',
+  be:    '<path d="M6 9.5h12M6 14.5h12"/>',
+  unk:   '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>',
+};
+
+function trHistoryHTML() {
+  // newest close first (the server already sorts this way; this keeps day
+  // groups correct even against an older server)
+  const closed = REAL_TRADES.filter(t => t.status !== 'OPEN').slice().sort((x, y) =>
+    String(y.closed_at || '').localeCompare(String(x.closed_at || '')) || (Number(y.id) || 0) - (Number(x.id) || 0));
+  const shown = closed.filter(t => {
+    const o = trOutcome(t);
+    return TR_FILTER === 'wins' ? o === 'win' : (TR_FILTER === 'losses' ? o === 'loss' : true);
+  });
+  const chip = (k, label) => `<span class="tr-chip${TR_FILTER === k ? ' on' : ''}" onclick="trSetFilter('${k}')">${label}</span>`;
+  let body;
+  if (!shown.length) {
+    body = `<div class="tr-empty" style="padding:16px"><div class="tr-es">${TR_FILTER === 'wins' ? 'No winning trades among the ones loaded.' : 'No losing trades among the ones loaded.'}</div></div>`;
+  } else {
+    let lastDay = null, rows = '';
+    shown.forEach(t => {
+      const day = trDayLabel(t.closed_at);
+      if (day !== lastDay) { rows += `<div class="tr-day">${esc(day)}</div>`; lastDay = day; }
+      const o = trOutcome(t), st = String(t.status || '');
+      let label, col, bg, ic;
+      if (o === 'unknown') { label = st === 'AUTO_CLOSED' ? 'Closed on new signal \u00b7 result not recorded' : 'Result not recorded'; col = '#888'; bg = '#1c1c1c'; ic = TR_I.unk; }
+      else {
+        col = o === 'win' ? 'var(--green)' : (o === 'loss' ? 'var(--red)' : '#60a5fa');
+        bg  = o === 'win' ? 'rgba(34,197,94,0.12)' : (o === 'loss' ? 'rgba(239,68,68,0.12)' : 'rgba(96,165,250,0.12)');
+        ic  = o === 'win' ? TR_I.win : (o === 'loss' ? TR_I.loss : TR_I.be);
+        if (st === 'AUTO_CLOSED')      label = 'Closed on new signal';
+        else if (st === 'LIQUIDATED')  label = 'Liquidated';
+        else label = o === 'win' ? 'Closed in profit' : (o === 'loss' ? 'Closed at a loss' : 'Breakeven');
+      }
+      const b = trBase(t.symbol), dir = String(t.direction).toUpperCase() === 'SHORT' ? 'short' : 'long';
+      const lev = Number(t.leverage) > 0 ? ` \u00b7 x${Number(t.leverage)}` : '';
+      const pnl = o === 'unknown' ? '<span style="color:#666">\u2014</span>'
+        : `<span style="color:${o === 'win' ? 'var(--green)' : (o === 'loss' ? 'var(--red)' : '#aaa')}">${dmMoney(t.profit, true)}</span>`;
+      rows += `<div class="tr-h">
+          <div class="tr-ic" style="background:${bg};color:${col}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></div>
+          <div class="tr-hx"><div class="tr-hs">${esc(b.base)} <span class="tr-pill ${dir}" style="font-size:9px;padding:2px 5px">${dir.toUpperCase()}</span></div>
+            <div class="tr-hm">${label}${trClock(t.closed_at) ? ' \u00b7 ' + trClock(t.closed_at) : ''}${lev}</div></div>
+          <div class="tr-pnl">${pnl}</div>
+        </div>`;
+    });
+    body = `<div class="tr-grp">${rows}</div>`;
+  }
+  const loaded = closed.length, more = REAL_CLOSED_TOTAL - loaded;
+  const moreBtn = more > 0 ? `<button class="tr-more" onclick="trShowMore(this)">Show more (${more} older)</button>` : '';
+  return `<div class="tr-chips">${chip('all', 'All')}${chip('wins', 'Wins')}${chip('losses', 'Losses')}</div>${body}${moreBtn}`;
+}
+function trSetFilter(k) {
+  TR_FILTER = k;
+  const el = document.getElementById('tr-hist');
+  if (el) el.innerHTML = trHistoryHTML();
+}
+async function trShowMore(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading\u2026'; }
+  const next = REAL_LIMIT + 30;
+  try {
+    const d = await apiFetch(`/api/real_trades?user_id=${USER_ID}&limit=${next}`);
+    if (d && Array.isArray(d.trades)) {
+      REAL_LIMIT = next;
+      REAL_TRADES = d.trades;
+      if (Number.isFinite(Number(d.closed_total))) REAL_CLOSED_TOTAL = Number(d.closed_total);
+    }
+  } catch (e) {
+    showToast('\u26a0\ufe0f Could not load more trades');
+  }
+  const el = document.getElementById('tr-hist');
+  if (el) el.innerHTML = trHistoryHTML();
+}
+
 function renderTrades() {
-  const openTrades   = REAL_TRADES.filter(t => t.status === 'OPEN');
-  const closedTrades = REAL_TRADES.filter(t => t.status !== 'OPEN');
-  const s = STATS;
+  const s = STATS || {};
+  const openTrades = REAL_TRADES.filter(t => t.status === 'OPEN');
+  const closedN = Number(s.closed !== undefined ? s.closed : s.total) || 0;
+  const wins = Number(s.wins) || 0, unrec = Number(s.unrecorded) || 0;
+  const net = dmR2(s.net), profit = dmR2(s.profit), loss = dmR2(s.loss);
+  const wr = closedN ? Math.max(0, Math.min(100, Number(s.win_rate) || 0)) : 0;
+  const netCol = net > 0 ? 'var(--green)' : (net < 0 ? 'var(--red)' : '#fff');
+  const C = 163.36;                                          // 2 * PI * 26
+  const ring = `<svg width="64" height="64" viewBox="0 0 64 64" style="flex:0 0 64px" aria-hidden="true">
+      <circle cx="32" cy="32" r="26" fill="none" stroke="#222" stroke-width="6"/>
+      ${closedN && wr > 0 ? `<circle cx="32" cy="32" r="26" fill="none" stroke="#ff914d" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${(C * (1 - wr / 100)).toFixed(2)}" transform="rotate(-90 32 32)" style="filter:drop-shadow(0 0 3px rgba(232,93,4,.6))"/>` : ''}
+      <text x="32" y="36" text-anchor="middle" fill="#fff" font-size="13" font-weight="800">${closedN ? wr.toFixed(1).replace(/\.0$/, '') + '%' : '\u2014'}</text>
+    </svg>`;
+  const sub = closedN ? `${wins} of ${closedN} closed trade${closedN === 1 ? '' : 's'} in profit` : 'No closed real trades yet';
+  const hero = `
+    <div class="tr-hero">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div class="tr-lbl">REAL P&amp;L</div>
+          <div class="tr-big" style="color:${netCol}">${dmMoney(net, true)}</div>
+          <div class="tr-sub">${sub}</div>
+        </div>${ring}
+      </div>
+      <div class="tr-minis">
+        <div class="tr-mini"><div class="k">Profit</div><div class="v" style="color:${profit > 0 ? 'var(--green)' : '#888'}">${dmMoney(profit, true)}</div></div>
+        <div class="tr-mini"><div class="k">Loss</div><div class="v" style="color:${loss < 0 ? 'var(--red)' : '#888'}">${dmMoney(loss, true)}</div></div>
+        <div class="tr-mini"><div class="k">Open</div><div class="v">${openTrades.length}</div></div>
+      </div>
+      ${unrec > 0 ? `<div class="tr-note">${unrec} trade${unrec === 1 ? ' was' : 's were'} closed on a new signal; ${unrec === 1 ? 'its result is' : 'their results are'} not recorded and not counted in the win rate.</div>` : ''}
+      <div class="tr-note">Real results from Binance, including fees.</div>
+    </div>`;
+
+  let openHTML;
+  if (openTrades.length) {
+    openHTML = openTrades.map(t => {
+      const b = trBase(t.symbol), dir = String(t.direction).toUpperCase() === 'SHORT' ? 'short' : 'long';
+      const first = (Array.from(b.base)[0] || '?').toUpperCase();
+      const amt = Number(t.amount);
+      return `<div class="tr-pos">
+          <div class="tr-ph">
+            <div class="tr-av">${esc(first)}</div>
+            <div style="min-width:0"><div class="tr-sym">${esc(b.base)}<small>${esc(b.quote)}</small></div>
+              <div style="display:flex;gap:6px;margin-top:3px"><span class="tr-pill ${dir}">${dir.toUpperCase()}</span>${Number(t.leverage) > 0 ? `<span class="tr-pill lev">x${Number(t.leverage)}</span>` : ''}</div></div>
+            <div class="tr-live"><span class="tr-dot"></span>ON BINANCE</div>
+          </div>
+          ${trLadder(t)}
+          <div class="tr-kv"><span>Entry <b>${trPrice(t.entry)}</b></span><span>Stop <b>${trPrice(t.sl)}</b></span>${amt > 0 ? `<span>Size <b>${dmMoney(amt, false)}</b></span>` : ''}<span>${esc(trAgo(t.opened_at))}</span></div>
+        </div>`;
+    }).join('');
+  } else if (!USER.has_api_key) {
+    openHTML = `<div class="tr-empty"><div class="tr-eic">${TR_I.link}</div><div class="tr-et">Connect Binance to trade for real</div>
+      <div class="tr-es">MRRIK opens positions for you automatically<br>as soon as the next signal arrives.</div>
+      <button class="tr-btn" onclick="openBotCommand('connect')">Connect Binance</button></div>`;
+  } else if (USER.is_paused) {
+    openHTML = `<div class="tr-empty"><div class="tr-eic">${TR_I.clock}</div><div class="tr-et">Auto-trading is paused</div>
+      <div class="tr-es">No new positions will open until you resume.</div>
+      <button class="tr-btn" onclick="togglePause()">Resume trading</button></div>`;
+  } else {
+    openHTML = `<div class="tr-empty"><div class="tr-eic">${TR_I.radar}</div><div class="tr-et">Waiting for the next signal</div>
+      <div class="tr-es">Your next position will appear here<br>the moment MRRIK opens it.</div></div>`;
+  }
+
+  const closedLoaded = REAL_TRADES.filter(t => t.status !== 'OPEN').length;
+  const histHTML = closedLoaded ? `<div id="tr-hist">${trHistoryHTML()}</div>`
+    : `<div class="tr-empty"><div class="tr-eic">${TR_I.clock}</div><div class="tr-et">No closed trades yet</div>
+        <div class="tr-es">Every closed trade will appear here<br>with its real result.</div></div>`;
 
   return `
     <div class="section" style="margin-top:14px">
-      <div class="section-header"><div class="section-title">Open positions (${openTrades.length})</div></div>
-      ${openTrades.length ? openTrades.map(t => `
-      <div class="trade-card">
-        <div>
-          <div class="trade-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-          <div class="trade-detail">x${t.leverage} &middot; Entry $${parseFloat(t.entry).toLocaleString()} &middot; SL $${parseFloat(t.sl).toLocaleString()}</div>
-        </div>
-        <div>
-          <div class="trade-pnl" style="color:var(--text3)">OPEN</div>
-          <div class="trade-pct">${fmtDate(t.opened_at)}</div>
-        </div>
-      </div>`).join('') : `<div class="empty-state">No open real trades</div>`}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 0">
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total profit</div>
-        <div style="font-size:20px;font-weight:600;color:var(--green)">+$${fmt(s.profit)}</div>
-      </div>
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total loss</div>
-        <div style="font-size:20px;font-weight:600;color:var(--red)">-$${fmt(s.loss)}</div>
-      </div>
+      ${hero}
     </div>
     <div class="section" style="padding-top:12px">
-      <div class="section-header"><div class="section-title">Trade history (${closedTrades.length})</div></div>
-      ${closedTrades.length ? `
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
-        ${closedTrades.map(t => {
-          const win = parseFloat(t.profit||0) >= 0;
-          const lbl = t.status==='TP_HIT'?'TP':t.status==='SL_HIT'?'SL':t.status==='AUTO_CLOSED'?'AUTO':t.status;
-          return `
-          <div class="trade-hist">
-            <div>
-              <div class="hist-coin">${t.symbol} <span class="badge ${t.direction==='LONG'?'long':'short'}">${t.direction}</span></div>
-              <div class="hist-date">${lbl} &middot; ${fmtDate(t.closed_at)}</div>
-            </div>
-            <div>
-              <div class="hist-pnl ${win?'win':'loss'}">${win?'+':'-'}$${fmt(t.profit||0)}</div>
-              <div class="hist-pct">x${t.leverage}</div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>` : `<div class="empty-state">No closed real trades yet</div>`}
+      <div class="section-header"><div class="section-title">Open positions<span class="tr-cnt">${openTrades.length}</span></div></div>
+      ${openHTML}
+    </div>
+    <div class="section" style="padding-top:12px">
+      <div class="section-header"><div class="section-title">Trade history<span class="tr-cnt">${REAL_CLOSED_TOTAL}</span></div></div>
+      ${histHTML}
     </div>`;
 }
+// ── /TRADES PAGE
 
 // ── Render: Demo ─────────────────────────────────────
 // ── DEMO PAGE ───────────────────────────────────────
