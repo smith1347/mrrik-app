@@ -1486,7 +1486,12 @@ function showToast(msg) {
 
 // ── API ─────────────────────────────────────────────
 async function apiFetch(path) {
-  const r = await fetch(`${API_BASE}${path}`);
+  // AUTH FIX: the server identifies the caller from Telegram's signed initData;
+  // a bare ?user_id= is no longer enough to read anyone's account.
+  const headers = {};
+  if (tg && tg.initData) headers['X-Telegram-Init-Data'] = tg.initData;
+  const r = await fetch(`${API_BASE}${path}`, { headers });
+  if (r.status === 401 || r.status === 403) { const e = new Error('HTTP ' + r.status); e.auth = true; throw e; }
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }
@@ -1516,6 +1521,7 @@ async function loadData(silent=false) {
     goTo(currentTab, true);
   } catch(e) {
     document.getElementById('live-dot').style.background = 'var(--red)';
+    if (e && e.auth) { showError('Your session has expired.\nClose MRRIK and open it again from the bot.'); return; }   // AUTH FIX
     if (!silent) showError('Could not connect to MRRIK server.\nCheck your connection and try again.', true);
     else showToast('⚠️ Refresh failed');
   }
