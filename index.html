@@ -653,6 +653,24 @@
   .vg-info { padding:12px 14px; display:flex; flex-direction:column; gap:2px; }
   .vg-t { font-size:14px; font-weight:700; color:var(--text); }
   .vg-s { font-size:12px; color:var(--text2); }
+
+  /* BANNERS: Home slider (classes bn-) */
+  .bn-slider { position:relative; margin:14px auto 0; max-width:720px; }
+  .bn-track { position:relative; display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;
+    -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; border-radius:16px; direction:ltr; }
+  .bn-track::-webkit-scrollbar { display:none; }
+  .bn-slide { flex:0 0 100%; scroll-snap-align:center; scroll-snap-stop:always; aspect-ratio:2/1; padding:0; margin:0;
+    border:1px solid rgba(232,93,4,0.25); border-radius:16px; overflow:hidden; background:#0b0705; cursor:pointer; display:block; }
+  .bn-slide img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; user-select:none; -webkit-user-drag:none; }
+  .bn-dots { display:flex; justify-content:center; gap:2px; margin-top:6px; direction:ltr; }
+  .bn-dot { width:22px; height:18px; padding:0; border:0; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .bn-dot i { display:block; width:6px; height:6px; border-radius:6px; background:#3a302a; transition:width .25s, background .25s; }
+  .bn-dot.on i { width:18px; background:var(--orange2); }
+  .bn-arrow { display:none; position:absolute; top:calc(50% - 12px); width:34px; height:34px; margin-top:-17px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.55); color:#fff; cursor:pointer; align-items:center; justify-content:center; }
+  .bn-arrow.l { left:8px; } .bn-arrow.r { right:8px; }
+  @media (hover:hover) and (pointer:fine) { .bn-slider:hover .bn-arrow { display:flex; } }
+  @media (prefers-reduced-motion: reduce) { .bn-dot i { transition:none; } }
   /* MRRIK INTRO: opening animation */
 #ix-intro{position:fixed;inset:0;z-index:2147483000;background:#070503;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,sans-serif;overflow:hidden}
 #ix-glow{position:absolute;left:50%;top:47%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;
@@ -1999,6 +2017,7 @@ function goTo(tab, skipAnim=false) {
     content.classList.remove('slide-in-left','slide-in-right','slide-out-left','slide-out-right');
     content.innerHTML = {home:renderHome, trades:renderTrades, demo:renderDemo, settings:renderSettings}[tab]();
     if (tab === 'settings' && typeof vgAttach === 'function') vgAttach();   // VIDEO GUIDE
+    if (tab === 'home' && typeof bnRestore === 'function') bnRestore();     // BANNERS
     if (!skipAnim) {
       void content.offsetWidth;   // restart the animation even if the same class was just used
       content.classList.add(goRight ? 'slide-in-left' : 'slide-in-right');
@@ -2376,6 +2395,78 @@ function vgBusy() {
 }
 // ── /VIDEO GUIDE
 
+// ── BANNERS ──────────────────────────────────────────
+// Home slider. Swipe, dots, arrows (mouse) and a gentle 6-second autoplay
+// that pauses while touched, while the app is hidden, off Home, and for
+// reduced-motion users. The position survives the 60-second silent refresh.
+const BN_SLIDES = [
+  { img: 'media/banner-website', label: 'Visit the MRRIK website', act: 'web' },
+  { img: 'media/banner-demo',    label: 'Try MRRIK free in demo mode', act: 'demo' },
+  { img: 'media/banner-referral', label: 'Get your referral link', act: 'ref' },
+];
+const BN = { idx: 0, holdUntil: 0 };
+function renderBanners() {
+  const slides = BN_SLIDES.map((b, i) => `
+      <button type="button" class="bn-slide" onclick="bnTap(${i})" aria-label="${b.label}">
+        <img src="${b.img}-800.jpg" srcset="${b.img}-800.jpg 800w, ${b.img}-1400.jpg 1400w"
+             sizes="(max-width: 720px) 100vw, 720px" width="800" height="400" alt="" decoding="async" draggable="false">
+      </button>`).join('');
+  const dots = BN_SLIDES.map((_, i) =>
+    `<button type="button" class="bn-dot${i === BN.idx ? ' on' : ''}" onclick="bnGo(${i}, true)" aria-label="Slide ${i + 1}"><i></i></button>`).join('');
+  return `
+    <div class="bn-slider" id="bn-slider" data-no-i18n>
+      <div class="bn-track" id="bn-track" onscroll="bnOnScroll()">${slides}</div>
+      <button type="button" class="bn-arrow l" onclick="bnGo(BN.idx - 1, true)" aria-label="Previous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="bn-arrow r" onclick="bnGo(BN.idx + 1, true)" aria-label="Next"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="bn-dots">${dots}</div>
+    </div>`;
+}
+function bnStep(track) {
+  const first = track.children[0];
+  return first ? first.getBoundingClientRect().width + 10 : track.clientWidth;   // slide + gap
+}
+function bnGo(i, smooth) {
+  const track = document.getElementById('bn-track');
+  if (!track) return;
+  const n = BN_SLIDES.length;
+  BN.idx = ((i % n) + n) % n;
+  BN.holdUntil = Date.now() + 8000;
+  track.scrollTo({ left: BN.idx * bnStep(track), behavior: smooth ? 'smooth' : 'auto' });
+  bnDots();
+}
+function bnDots() {
+  document.querySelectorAll('#bn-slider .bn-dot').forEach((d, k) => d.classList.toggle('on', k === BN.idx));
+}
+function bnOnScroll() {
+  const track = document.getElementById('bn-track');
+  if (!track) return;
+  const i = Math.round(track.scrollLeft / bnStep(track));
+  if (i !== BN.idx && i >= 0 && i < BN_SLIDES.length) { BN.idx = i; bnDots(); }
+}
+function bnRestore() {            // after a re-render, put the slider back where it was
+  const track = document.getElementById('bn-track');
+  if (track && BN.idx) track.scrollLeft = BN.idx * bnStep(track);
+}
+function bnTap(i) {
+  const a = BN_SLIDES[i] && BN_SLIDES[i].act;
+  if (a === 'web') srOpenWeb();
+  else if (a === 'demo') { if (USER && USER.is_demo) goTo('demo'); else toggleDemo(); }
+  else if (a === 'ref') srOpenTg('https://t.me/Leonit99');
+}
+(function () {
+  const hold = e => { if (e.target.closest && e.target.closest('#bn-slider')) BN.holdUntil = Date.now() + 8000; };
+  document.addEventListener('touchstart', hold, { passive: true });
+  document.addEventListener('pointerdown', hold, { passive: true });
+  setInterval(() => {
+    if (document.hidden || currentTab !== 'home' || Date.now() < BN.holdUntil) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!document.getElementById('bn-track')) return;
+    bnGo(BN.idx + 1, true);
+    BN.holdUntil = 0;
+  }, 6000);
+})();
+// ── /BANNERS
+
 // ── Render: Home (real trade stats) ─────────────────
 // HOME HEADER: getting-started card for a brand-new real-trading user.
 // Steps derive from data already in USER/USER.demo -- nothing new to track.
@@ -2528,6 +2619,7 @@ function renderHome() {
       <div class="stat-item"><div class="stat-label">Wins</div><div class="stat-value green">${s.wins}</div></div>
       <div class="stat-item"><div class="stat-label">Losses</div><div class="stat-value red">${s.losses}</div></div>
     </div>`}
+    ${renderBanners()}
     <div class="section" style="margin-top:14px">
       <div class="section-header">
         <div class="section-title">Open real trades</div>
@@ -3566,6 +3658,7 @@ document.addEventListener('click', function(e) {
   let sx = 0, sy = 0;
   screen.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
   screen.addEventListener('touchend', e => {
+    if (e.target && e.target.closest && e.target.closest('#bn-slider')) return;   // BANNERS: slider swipe
     const dx = e.changedTouches[0].clientX - sx;
     const dy = e.changedTouches[0].clientY - sy;
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
