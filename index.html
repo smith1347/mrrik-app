@@ -2146,6 +2146,15 @@ function renderSkeleton() {
 }
 
 // ── Helpers ─────────────────────────────────────────
+// CONTRARIAN: hidden from users. Set SHOW_CONTRARIAN = true to show the button
+// again on Home, Demo and Settings; nothing else needs to change. A user whose
+// mode is already Contrarian (e.g. set from the admin panel) still sees it, so
+// their active mode is never invisible and they can switch away.
+const SHOW_CONTRARIAN = false;
+function contrarianVisible() {
+  return SHOW_CONTRARIAN || (typeof USER !== 'undefined' && USER && USER.risk_mode === 'contrarian');
+}
+
 const RISK_DESCS = {
   low:    'Takes profit earliest. TP1 always closes the biggest share (60% on 2–3 target signals, 40% on 4–5). The stop starts protecting quickly — moving to entry once TP1 hits on most signals, or to TP1 after TP2 on 3-target signals. Uses every target the signal provides, up to 5.',
   medium: 'Balanced. TP1 takes a smaller share (30%, or just 10% on 5-target signals) with more weight on the middle targets. On 2-target signals the stop moves to entry after TP1; on 3 or more it waits until TP2. Uses every target the signal provides, up to 5.',
@@ -2647,8 +2656,8 @@ function renderHome() {
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
           <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
-        <!-- CONTRARIAN: delete this div to remove the experimental mode -->
-        <div class="risk-btns" style="margin-top:6px">
+        <!-- CONTRARIAN: delete this div to remove the experimental mode; hidden unless SHOW_CONTRARIAN (or already selected) -->
+        <div class="risk-btns" style="margin-top:6px${contrarianVisible() ? '' : ';display:none'}">
           <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
@@ -3092,8 +3101,8 @@ function renderDemo() {
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
           <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
-        <!-- CONTRARIAN: delete this div to remove the experimental mode -->
-        <div class="risk-btns" style="margin-top:6px">
+        <!-- CONTRARIAN: delete this div to remove the experimental mode; hidden unless SHOW_CONTRARIAN (or already selected) -->
+        <div class="risk-btns" style="margin-top:6px${contrarianVisible() ? '' : ';display:none'}">
           <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
@@ -3561,8 +3570,8 @@ function renderSettings() {
           <button class="risk-btn ${USER.risk_mode==='medium'?'active':''}" data-mode="medium" onclick="setRisk('medium')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#eab308;margin-right:1px;vertical-align:1px"></span>Medium</button>
           <button class="risk-btn ${USER.risk_mode==='high'?'active':''}" data-mode="high" onclick="setRisk('high')"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:1px;vertical-align:1px"></span>High</button>
         </div>
-        <!-- CONTRARIAN: delete this div to remove the experimental mode -->
-        <div class="risk-btns" style="margin-top:6px">
+        <!-- CONTRARIAN: delete this div to remove the experimental mode; hidden unless SHOW_CONTRARIAN (or already selected) -->
+        <div class="risk-btns" style="margin-top:6px${contrarianVisible() ? '' : ';display:none'}">
           <button class="risk-btn ${USER.risk_mode==='contrarian'?'active':''}" data-mode="contrarian" onclick="setRisk('contrarian')"><span style="display:inline-flex;vertical-align:-2px;width:12px;height:12px;margin-right:2px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5V5.5H10"/></svg></span>Contrarian <span style="opacity:.6;font-size:10px">· experimental</span></button>
         </div>
         <div class="risk-desc">${RISK_DESCS[USER.risk_mode] || RISK_DESCS.medium}</div>
