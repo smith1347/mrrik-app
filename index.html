@@ -2155,6 +2155,17 @@ function contrarianVisible() {
   return SHOW_CONTRARIAN || (typeof USER !== 'undefined' && USER && USER.risk_mode === 'contrarian');
 }
 
+// HIST PCT: result of a closed demo trade as % of the margin it used, from the
+// trade's actual dollar result (profit_usd / amount). The stored profit_pct was
+// only ever written by manual closes, so every other trade showed +0.00%.
+function histPct(t) {
+  const amt = Number(t.amount), usd = Number(t.profit_usd || 0);
+  if (!(amt > 0) || !isFinite(usd)) return '';
+  const p = usd / amt * 100;
+  const sign = p > 0.005 ? '+' : (p < -0.005 ? '\u2212' : '');
+  return sign + Math.abs(p).toFixed(2) + '%';
+}
+
 const RISK_DESCS = {
   low:    'Takes profit earliest. TP1 always closes the biggest share (60% on 2–3 target signals, 40% on 4–5). The stop starts protecting quickly — moving to entry once TP1 hits on most signals, or to TP1 after TP2 on 3-target signals. Uses every target the signal provides, up to 5.',
   medium: 'Balanced. TP1 takes a smaller share (30%, or just 10% on 5-target signals) with more weight on the middle targets. On 2-target signals the stop moves to entry after TP1; on 3 or more it waits until TP2. Uses every target the signal provides, up to 5.',
@@ -3267,7 +3278,7 @@ function renderDemo() {
             </div>
             <div>
               <div class="hist-pnl ${isPos?'win':isNeg?'loss':''}" style="${!isPos&&!isNeg?'color:#60a5fa':''}">${isPos?'+':isNeg?'-':''}$${fmt(profit)}</div>
-              <div class="hist-pct">${isPos?'+':''}${parseFloat(t.profit_pct||0).toFixed(2)}%</div>
+              <div class="hist-pct">${histPct(t)}</div>
             </div>
           </div>`;
         }).join('')}
